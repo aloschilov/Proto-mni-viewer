@@ -136,10 +136,7 @@ void MainWindow::initializeVtk()
     sphereWidget->ScaleOff();
     sphereWidget->HandleVisibilityOn();
 
-    light = vtkLight::New();
-    light->SetAmbientColor(1.0, 1.0, 1.0);
-    light->SetDiffuseColor(1.0, 1.0, 1.0);
-    light->SetSpecularColor(1.0, 1.0, 1.0);
+    light = ren->MakeLight();
     ren->RemoveAllLights();
 
     Connections = vtkEventQtSlotConnect::New();
