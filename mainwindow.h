@@ -12,6 +12,8 @@
 #include <vtkActor.h>
 #include <vtkLight.h>
 #include <vtkSphereWidget.h>
+#include <vtkConeSource.h>
+#include <vtkDataSetMapper.h>
 
 #include <vtkEventQtSlotConnect.h>
 
@@ -39,7 +41,8 @@ private slots:
     void setGouraudShadingModel();
     void setPhongShadingModel();
 
-    void processVtkCommandSlot(vtkObject*, unsigned long, void*, void*, vtkCommand*);
+    void processSphereWidgetInteractionEvent(vtkObject*, unsigned long, void*, void*, vtkCommand*);
+    void processMouseMoveEvent(vtkObject*, unsigned long, void*, void*, vtkCommand*);
 
     void processAmbientChanged(double value);
     void processSpecularChanged(double value);
@@ -78,6 +81,14 @@ private:
     vtkSmartPointer<vtkEventQtSlotConnect> Connections;
     vtkSmartPointer<vtkLight> light;
     vtkSmartPointer<vtkSphereWidget> sphereWidget;
+
+    // Vtk objects related to marking surface
+
+    vtkSmartPointer<vtkConeSource> coneSource;
+    vtkSmartPointer<vtkDataSetMapper> coneMapper;
+    vtkSmartPointer<vtkActor> redCone;
+    vtkSmartPointer<vtkActor> greenCone;
+    vtkSmartPointer<vtkVolumePicker> picker;
 };
 
 #endif // MAINWINDOW_H

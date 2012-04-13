@@ -139,11 +139,39 @@ void MainWindow::initializeVtk()
     light = ren->MakeLight();
     ren->RemoveAllLights();
 
+    coneSource = vtkSmartPointer<vtkConeSource>::New();
+    coneSource->CappingOn();
+    coneSource->SetHeight(12);
+    coneSource->SetRadius(5);
+    coneSource->SetResolution(31);
+    coneSource->SetCenter(6,0,0);
+    coneSource->SetDirection(-1,0,0);
+
+    coneMapper = vtkSmartPointer<vtkDataSetMapper>::New();
+    coneMapper->SetInputConnection(coneSource->GetOutputPort());
+
+    redCone = vtkSmartPointer<vtkActor>::New();
+    redCone->PickableOff();
+    redCone->SetMapper(coneMapper);
+    redCone->GetProperty()->SetColor(1,0,0);
+
+    greenCone = vtkSmartPointer<vtkActor>::New();
+    greenCone->PickableOff();
+    greenCone->SetMapper(coneMapper);
+    greenCone->GetProperty()->SetColor(0,1,0);
+    
+    ren->AddViewProp(redCone);
+    ren->AddViewProp(greenCone);
+
     Connections = vtkEventQtSlotConnect::New();
     Connections->Connect(sphereWidget,
                          vtkCommand::InteractionEvent,
                          this,
-                         SLOT(processVtkCommandSlot(vtkObject*, unsigned long, void*, void*, vtkCommand*)) );
+                         SLOT(processSphereWidgetInteractionEvent(vtkObject*, unsigned long, void*, void*, vtkCommand*)) );
+    Connections->Connect(qvtkWidget->GetInteractor(),
+                         vtkCommand::MouseMoveEvent,
+                         this,
+                         SLOT(processMouseMoveEvent(vtkObject*, unsigned long, void*, void*, vtkCommand*)) );
 }
 
 MainWindow::~MainWindow()
@@ -270,10 +298,16 @@ void MainWindow::setPhongShadingModel()
     qvtkWidget->GetRenderWindow()->Render();
 }
 
-void MainWindow::processVtkCommandSlot(vtkObject *caller, unsigned long, void*, void*, vtkCommand*)
+void MainWindow::processSphereWidgetInteractionEvent(vtkObject *caller, unsigned long, void*, void*, vtkCommand*)
 {
     vtkSphereWidget *widget = reinterpret_cast<vtkSphereWidget*>(caller);
     light->SetPosition(widget->GetHandlePosition());
+}
+
+void MainWindow::processMouseMoveEvent(vtkObject *caller, unsigned long, void*, void*, vtkCommand*)
+{
+  vtkRenderWindowInteractor *iren = reinterpret_cast<vtkRenderWindowInteractor*>(caller);
+  qDebug() << "Some text";
 }
 
 void MainWindow::processLightingStateChanged(int state)
