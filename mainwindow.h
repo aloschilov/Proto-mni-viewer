@@ -14,14 +14,20 @@
 #include <vtkSphereWidget.h>
 #include <vtkConeSource.h>
 #include <vtkDataSetMapper.h>
+#include <vtkVolumePicker.h>
 
 #include <vtkEventQtSlotConnect.h>
+#include <vtkPolygonalSurfaceContourLineInterpolator.h>
+#include <vtkPolygonalSurfacePointPlacer.h>
+#include <vtkContourWidget.h>
+
 
 // Forward declarations section
 class QVTKWidget;
 class LookupTableSelectionWidget;
 class ShadingModelSelectionWidget;
 class LightingPropertiesWidget;
+class SurfaceSelectionWidget;
 
 
 class MainWindow : public QMainWindow
@@ -42,7 +48,8 @@ private slots:
     void setPhongShadingModel();
 
     void processSphereWidgetInteractionEvent(vtkObject*, unsigned long, void*, void*, vtkCommand*);
-    void processMouseMoveEvent(vtkObject*, unsigned long, void*, void*, vtkCommand*);
+//    void processMouseMoveEvent(vtkObject*, unsigned long, void*, void*, vtkCommand*);
+    void pointCone(vtkActor* actorToRotate, double nx, double ny, double nz);
 
     void processAmbientChanged(double value);
     void processSpecularChanged(double value);
@@ -50,6 +57,7 @@ private slots:
     void processOpacityChanged(double value);
     void processLightingStateChanged(int state);
     void processLightingWidgetStateChanged(int state);
+    void processSurfaceSelectorStateChanged(int state);
 
 private:
     void createActions();
@@ -71,6 +79,9 @@ private:
     QDockWidget *lightingPropertiesDockWidget;
     LightingPropertiesWidget *lightingPropertiesWidget;
 
+    QDockWidget *surfaceSelectionDockWidget;
+    SurfaceSelectionWidget *surfaceSelectionWidget;
+
     QVTKWidget *qvtkWidget;
 
     vtkSmartPointer<vtkPolyDataMapper> mapper;
@@ -82,13 +93,19 @@ private:
     vtkSmartPointer<vtkLight> light;
     vtkSmartPointer<vtkSphereWidget> sphereWidget;
 
+    vtkSmartPointer<vtkContourWidget> contourWidget;
+    vtkSmartPointer<vtkPolygonalSurfaceContourLineInterpolator> interpolator;
+    vtkSmartPointer<vtkPolygonalSurfacePointPlacer> pointPlacer;
+
     // Vtk objects related to marking surface
 
-    vtkSmartPointer<vtkConeSource> coneSource;
-    vtkSmartPointer<vtkDataSetMapper> coneMapper;
-    vtkSmartPointer<vtkActor> redCone;
-    vtkSmartPointer<vtkActor> greenCone;
-    vtkSmartPointer<vtkVolumePicker> picker;
+    //vtkSmartPointer<vtkConeSource> coneSource;
+    //vtkSmartPointer<vtkDataSetMapper> coneMapper;
+    //vtkSmartPointer<vtkActor> redCone;
+    //vtkSmartPointer<vtkActor> greenCone;
+    //vtkSmartPointer<vtkVolumePicker> picker;
+
+    //vtkSmartPointer<vtkPoints> pinsPoints;
 };
 
 #endif // MAINWINDOW_H

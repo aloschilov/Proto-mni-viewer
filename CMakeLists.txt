@@ -31,8 +31,8 @@ INCLUDE_DIRECTORIES(
 INCLUDE_DIRECTORIES(${VTK_TDX_INCLUDE_PATH})
 
 # Set your files and resources here  
-SET(ProtoMniViewerSrcs main.cxx mainwindow.cxx lookuptableselectionwidget.cxx shadingmodelselectionwidget.cxx lightingpropertieswidget.cxx)
-SET(ProtoMniViewerHeaders mainwindow.h lookuptableselectionwidget.h shadingmodelselectionwidget.h lightingpropertieswidget.h)
+SET(ProtoMniViewerSrcs main.cxx mainwindow.cxx lookuptableselectionwidget.cxx shadingmodelselectionwidget.cxx lightingpropertieswidget.cxx surfaceselectionwidget.cxx)
+SET(ProtoMniViewerHeaders mainwindow.h lookuptableselectionwidget.h shadingmodelselectionwidget.h lightingpropertieswidget.h surfaceselectionwidget.h)
 SET(ProtoMniViewerResources protomniviewer.qrc)
 
 # The rest should just work (sure...)

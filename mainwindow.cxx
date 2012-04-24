@@ -1,5 +1,9 @@
 #include <QtGui>
 
+#include <math.h>
+
+#include "mainwindow.h"
+
 #include <vtkDataObjectToTable.h>
 #include <vtkElevationFilter.h>
 #include <vtkQtTableView.h>
@@ -14,7 +18,9 @@
 #include <vtkPointData.h>
 #include <vtkProperty.h>
 #include <vtkCamera.h>
-#include <vtkContourWidget.h>
+
+#include <vtkOrientedGlyphContourRepresentation.h>
+#include <vtkPolyDataCollection.h>
 
 // vtkWidgets
 
@@ -24,11 +30,11 @@
 #include <fstream>
 #include <sstream>
 
-#include "mainwindow.h"
 
 #include "lookuptableselectionwidget.h"
 #include "shadingmodelselectionwidget.h"
 #include "lightingpropertieswidget.h"
+#include "surfaceselectionwidget.h"
 
 
 #define VTK_CREATE(type, name) \
@@ -76,6 +82,13 @@ MainWindow::MainWindow(QWidget *parent)
     lightingPropertiesDockWidget->setVisible(true);
     addDockWidget(Qt::RightDockWidgetArea, lightingPropertiesDockWidget, Qt::Horizontal);
 
+    surfaceSelectionWidget = new SurfaceSelectionWidget();
+
+    surfaceSelectionDockWidget = new QDockWidget(tr("Surface selection"), this);
+    surfaceSelectionDockWidget->setWidget(surfaceSelectionWidget);
+    surfaceSelectionDockWidget->setAllowedAreas(Qt::RightDockWidgetArea | Qt::LeftDockWidgetArea);
+    addDockWidget(Qt::RightDockWidgetArea, surfaceSelectionDockWidget, Qt::Horizontal);
+
     setCentralWidget(qvtkWidget);
 
     createActions();
@@ -103,6 +116,8 @@ MainWindow::MainWindow(QWidget *parent)
             this, SLOT(processOpacityChanged(double)));
     connect(lightingPropertiesWidget->lightingWidgetVisibilityCheckbox, SIGNAL(stateChanged(int)),
             this, SLOT(processLightingWidgetStateChanged(int)));
+    connect(surfaceSelectionWidget->enableSurfaceSelectorCheckbox, SIGNAL(stateChanged(int)),
+            this, SLOT(processSurfaceSelectorStateChanged(int)));
 }
 
 void MainWindow::initializeVtk()
@@ -131,47 +146,77 @@ void MainWindow::initializeVtk()
     sphereWidget = vtkSphereWidget::New();
     sphereWidget->SetInteractor(qvtkWidget->GetInteractor());
     sphereWidget->SetPlaceFactor(4);
-    sphereWidget->PlaceWidget();
     sphereWidget->TranslationOff();
     sphereWidget->ScaleOff();
+    sphereWidget->KeyPressActivationOff();
     sphereWidget->HandleVisibilityOn();
 
     light = ren->MakeLight();
     ren->RemoveAllLights();
 
-    coneSource = vtkSmartPointer<vtkConeSource>::New();
-    coneSource->CappingOn();
-    coneSource->SetHeight(12);
-    coneSource->SetRadius(5);
-    coneSource->SetResolution(31);
-    coneSource->SetCenter(6,0,0);
-    coneSource->SetDirection(-1,0,0);
+//    coneSource = vtkSmartPointer<vtkConeSource>::New();
+//    coneSource->CappingOn();
+//    coneSource->SetHeight(12);
+//    coneSource->SetRadius(5);
+//    coneSource->SetResolution(31);
+//    coneSource->SetCenter(6,0,0);
+//    coneSource->SetDirection(-1,0,0);
 
-    coneMapper = vtkSmartPointer<vtkDataSetMapper>::New();
-    coneMapper->SetInputConnection(coneSource->GetOutputPort());
+//    coneMapper = vtkSmartPointer<vtkDataSetMapper>::New();
+//    coneMapper->SetInputConnection(coneSource->GetOutputPort());
 
-    redCone = vtkSmartPointer<vtkActor>::New();
-    redCone->PickableOff();
-    redCone->SetMapper(coneMapper);
-    redCone->GetProperty()->SetColor(1,0,0);
+//    redCone = vtkSmartPointer<vtkActor>::New();
+//    redCone->PickableOff();
+//    redCone->SetMapper(coneMapper);
+//    redCone->GetProperty()->SetColor(1,0,0);
 
-    greenCone = vtkSmartPointer<vtkActor>::New();
-    greenCone->PickableOff();
-    greenCone->SetMapper(coneMapper);
-    greenCone->GetProperty()->SetColor(0,1,0);
+//    greenCone = vtkSmartPointer<vtkActor>::New();
+//    greenCone->PickableOff();
+//    greenCone->SetMapper(coneMapper);
+//    greenCone->GetProperty()->SetColor(0,1,0);
     
-    ren->AddViewProp(redCone);
-    ren->AddViewProp(greenCone);
+//    ren->AddViewProp(redCone);
+//    ren->AddViewProp(greenCone);
+
+//    picker = vtkSmartPointer<vtkVolumePicker>::New();
+//    picker->SetTolerance(1e-6);
+
+//    redCone->SetVisibility(false);
+//    greenCone->SetVisibility(false);
+    contourWidget =
+      vtkSmartPointer<vtkContourWidget>::New();
+    vtkOrientedGlyphContourRepresentation *rep =
+        vtkOrientedGlyphContourRepresentation::SafeDownCast(
+                          contourWidget->GetRepresentation());
+    rep->GetLinesProperty()->SetColor(1, 0.2, 0);
+    rep->GetLinesProperty()->SetLineWidth(3.0);
+    contourWidget->SetInteractor(qvtkWidget->GetInteractor());
+    contourWidget->KeyPressActivationOff();
+
+    pointPlacer =
+      vtkSmartPointer<vtkPolygonalSurfacePointPlacer>::New();
+    pointPlacer->AddProp(actor);
+    rep->SetPointPlacer(pointPlacer);
+
+    // Set a terrain interpolator. Interpolates points as they are placed,
+    // so that they lie on the terrain.
+
+    interpolator = vtkSmartPointer<vtkPolygonalSurfaceContourLineInterpolator>::New();
+    rep->SetLineInterpolator(interpolator);
 
     Connections = vtkEventQtSlotConnect::New();
     Connections->Connect(sphereWidget,
                          vtkCommand::InteractionEvent,
                          this,
                          SLOT(processSphereWidgetInteractionEvent(vtkObject*, unsigned long, void*, void*, vtkCommand*)) );
-    Connections->Connect(qvtkWidget->GetInteractor(),
-                         vtkCommand::MouseMoveEvent,
-                         this,
-                         SLOT(processMouseMoveEvent(vtkObject*, unsigned long, void*, void*, vtkCommand*)) );
+//    Connections->Connect(qvtkWidget->GetInteractor(),
+//                         vtkCommand::MouseMoveEvent,
+//                         this,
+//                         SLOT(processMouseMoveEvent(vtkObject*, unsigned long, void*, void*, vtkCommand*)) );
+//    Connections->Connect(qvtkWidget->GetInteractor(),
+//                         vtkCommand::LeftButtonPressEvent,
+//                         this,
+//                         SLOT());
 }
 
 MainWindow::~MainWindow()
@@ -203,6 +248,40 @@ void MainWindow::openMeshFile()
         light->SetFocalPoint(reader->GetOutput()->GetCenter());
 
 
+/*
+
+        vtkSmartPointer<vtkPolyDataNormals> normals =
+          vtkSmartPointer<vtkPolyDataNormals>::New();
+
+        bool   distanceOffsetSpecified = false;
+        double distanceOffset = 20.0;
+
+        for (int i = 0; i < argc-1; i++)
+        {
+            distanceOffset = atof(argv[i+1]);
+            distanceOffsetSpecified = true;
+        }
+
+        if (distanceOffsetSpecified)
+        {
+            normals->SetInputConnection(warp->GetOutputPort());
+            normals->SetFeatureAngle(60);
+            normals->SplittingOff();
+
+            normals->ComputeCellNormalsOn();
+            normals->ComputePointNormalsOn();
+            normals->Update();
+        }
+
+        vtkPolyData *pd = normals->GetOutput();
+
+        pointPlacer->GetPolys()->AddItem( pd );
+        interpolator->GetPolys()->AddItem( pd );
+
+        //interpolator->SetImageData();
+
+//        redCone->SetVisibility(true);
+//        greenCone->SetVisibility(true);*/
     }
     else
     {
@@ -304,10 +383,35 @@ void MainWindow::processSphereWidgetInteractionEvent(vtkObject *caller, unsigned
     light->SetPosition(widget->GetHandlePosition());
 }
 
-void MainWindow::processMouseMoveEvent(vtkObject *caller, unsigned long, void*, void*, vtkCommand*)
+//void MainWindow::processMouseMoveEvent(vtkObject *caller, unsigned long, void*, void*, vtkCommand*)
+//{
+//  vtkRenderWindowInteractor *iren = reinterpret_cast<vtkRenderWindowInteractor*>(caller);
+  
+//  int pos[2];
+//  iren->GetEventPosition(pos);
+//  picker->Pick(pos[0], pos[1], 0, ren);
+//  double p[3];
+//  double n[3];
+//  picker->GetPickPosition(p);
+//  picker->GetPickNormal(n);
+//  redCone->SetPosition(p);
+//  pointCone(redCone, n[0], n[1], n[2]);
+//  greenCone->SetPosition(p);
+//  pointCone(greenCone, -n[0], -n[1], -n[2]);
+//  iren->Render();
+//}
+
+
+void MainWindow::pointCone(vtkActor* actorToRotate, double nx, double ny, double nz)
 {
-  vtkRenderWindowInteractor *iren = reinterpret_cast<vtkRenderWindowInteractor*>(caller);
-  qDebug() << "Some text";
+    actorToRotate->SetOrientation(0.0, 0.0, 0.0);
+    double n = sqrt(nx*nx + ny*ny + nz*nz);
+    if (nx < 0.0)
+    {
+        actorToRotate->RotateWXYZ(180, 0, 1, 0);
+        n = -n;
+    }
+    actorToRotate->RotateWXYZ(180, (nx+n)*0.5, ny*0.5, nz*0.5);
 }
 
 void MainWindow::processLightingStateChanged(int state)
@@ -365,5 +469,16 @@ void MainWindow::processLightingWidgetStateChanged(int state)
     } else if (state == Qt::Unchecked)
     {
         sphereWidget->Off();
+    }
+}
+
+void MainWindow::processSurfaceSelectorStateChanged(int state)
+{
+    if(state == Qt::Checked)
+    {
+        contourWidget->On();
+    } else if(state == Qt::Unchecked)
+    {
+        contourWidget->Off();
     }
 }
