@@ -192,6 +192,8 @@ void MainWindow::initializeVtk()
     rep->GetLinesProperty()->SetLineWidth(3.0);
     contourWidget->SetInteractor(qvtkWidget->GetInteractor());
     contourWidget->KeyPressActivationOff();
+    contourWidget->EnabledOn();
+    contourWidget->ProcessEventsOff();
 
     pointPlacer =
       vtkSmartPointer<vtkPolygonalSurfacePointPlacer>::New();
@@ -476,9 +478,9 @@ void MainWindow::processSurfaceSelectorStateChanged(int state)
 {
     if(state == Qt::Checked)
     {
-        contourWidget->On();
+        contourWidget->ProcessEventsOn();
     } else if(state == Qt::Unchecked)
     {
-        contourWidget->Off();
+        contourWidget->ProcessEventsOff();
     }
 }

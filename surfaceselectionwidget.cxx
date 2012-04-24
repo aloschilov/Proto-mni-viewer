@@ -9,6 +9,7 @@ SurfaceSelectionWidget::SurfaceSelectionWidget(QWidget *parent) :
 
     QVBoxLayout *mainLayout = new QVBoxLayout();
     mainLayout->addWidget(enableSurfaceSelectorCheckbox);
+    mainLayout->addStretch();
 
     setLayout(mainLayout);
 }
