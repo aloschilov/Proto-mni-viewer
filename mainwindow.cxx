@@ -22,6 +22,10 @@
 #include <vtkOrientedGlyphContourRepresentation.h>
 #include <vtkPolyDataCollection.h>
 
+#include <vtkPolyDataReader.h>
+
+#include <vtkPolyDataWriter.h>
+
 // vtkWidgets
 
 #include <iostream>
@@ -118,6 +122,10 @@ MainWindow::MainWindow(QWidget *parent)
             this, SLOT(processLightingWidgetStateChanged(int)));
     connect(surfaceSelectionWidget->enableSurfaceSelectorCheckbox, SIGNAL(stateChanged(int)),
             this, SLOT(processSurfaceSelectorStateChanged(int)));
+    connect(surfaceSelectionWidget->openContour, SIGNAL(clicked()),
+            this, SLOT(openSelection()));
+    connect(surfaceSelectionWidget->saveContour, SIGNAL(clicked()),
+            this, SLOT(saveSelection()));
 }
 
 void MainWindow::initializeVtk()
@@ -154,40 +162,40 @@ void MainWindow::initializeVtk()
     light = ren->MakeLight();
     ren->RemoveAllLights();
 
-//    coneSource = vtkSmartPointer<vtkConeSource>::New();
-//    coneSource->CappingOn();
-//    coneSource->SetHeight(12);
-//    coneSource->SetRadius(5);
-//    coneSource->SetResolution(31);
-//    coneSource->SetCenter(6,0,0);
-//    coneSource->SetDirection(-1,0,0);
+    //    coneSource = vtkSmartPointer<vtkConeSource>::New();
+    //    coneSource->CappingOn();
+    //    coneSource->SetHeight(12);
+    //    coneSource->SetRadius(5);
+    //    coneSource->SetResolution(31);
+    //    coneSource->SetCenter(6,0,0);
+    //    coneSource->SetDirection(-1,0,0);
 
-//    coneMapper = vtkSmartPointer<vtkDataSetMapper>::New();
-//    coneMapper->SetInputConnection(coneSource->GetOutputPort());
+    //    coneMapper = vtkSmartPointer<vtkDataSetMapper>::New();
+    //    coneMapper->SetInputConnection(coneSource->GetOutputPort());
 
-//    redCone = vtkSmartPointer<vtkActor>::New();
-//    redCone->PickableOff();
-//    redCone->SetMapper(coneMapper);
-//    redCone->GetProperty()->SetColor(1,0,0);
+    //    redCone = vtkSmartPointer<vtkActor>::New();
+    //    redCone->PickableOff();
+    //    redCone->SetMapper(coneMapper);
+    //    redCone->GetProperty()->SetColor(1,0,0);
 
-//    greenCone = vtkSmartPointer<vtkActor>::New();
-//    greenCone->PickableOff();
-//    greenCone->SetMapper(coneMapper);
-//    greenCone->GetProperty()->SetColor(0,1,0);
+    //    greenCone = vtkSmartPointer<vtkActor>::New();
+    //    greenCone->PickableOff();
+    //    greenCone->SetMapper(coneMapper);
+    //    greenCone->GetProperty()->SetColor(0,1,0);
     
-//    ren->AddViewProp(redCone);
-//    ren->AddViewProp(greenCone);
+    //    ren->AddViewProp(redCone);
+    //    ren->AddViewProp(greenCone);
 
-//    picker = vtkSmartPointer<vtkVolumePicker>::New();
-//    picker->SetTolerance(1e-6);
+    //    picker = vtkSmartPointer<vtkVolumePicker>::New();
+    //    picker->SetTolerance(1e-6);
 
-//    redCone->SetVisibility(false);
-//    greenCone->SetVisibility(false);
+    //    redCone->SetVisibility(false);
+    //    greenCone->SetVisibility(false);
     contourWidget =
-      vtkSmartPointer<vtkContourWidget>::New();
+            vtkSmartPointer<vtkContourWidget>::New();
     vtkOrientedGlyphContourRepresentation *rep =
-        vtkOrientedGlyphContourRepresentation::SafeDownCast(
-                          contourWidget->GetRepresentation());
+            vtkOrientedGlyphContourRepresentation::SafeDownCast(
+                contourWidget->GetRepresentation());
     rep->GetLinesProperty()->SetColor(1, 0.2, 0);
     rep->GetLinesProperty()->SetLineWidth(3.0);
     contourWidget->SetInteractor(qvtkWidget->GetInteractor());
@@ -196,7 +204,7 @@ void MainWindow::initializeVtk()
     contourWidget->ProcessEventsOff();
 
     pointPlacer =
-      vtkSmartPointer<vtkPolygonalSurfacePointPlacer>::New();
+            vtkSmartPointer<SaveablePolygonalSurfacePointPlacer>::New();
     pointPlacer->AddProp(actor);
     rep->SetPointPlacer(pointPlacer);
 
@@ -211,14 +219,14 @@ void MainWindow::initializeVtk()
                          vtkCommand::InteractionEvent,
                          this,
                          SLOT(processSphereWidgetInteractionEvent(vtkObject*, unsigned long, void*, void*, vtkCommand*)) );
-//    Connections->Connect(qvtkWidget->GetInteractor(),
-//                         vtkCommand::MouseMoveEvent,
-//                         this,
-//                         SLOT(processMouseMoveEvent(vtkObject*, unsigned long, void*, void*, vtkCommand*)) );
-//    Connections->Connect(qvtkWidget->GetInteractor(),
-//                         vtkCommand::LeftButtonPressEvent,
-//                         this,
-//                         SLOT());
+    //    Connections->Connect(qvtkWidget->GetInteractor(),
+    //                         vtkCommand::MouseMoveEvent,
+    //                         this,
+    //                         SLOT(processMouseMoveEvent(vtkObject*, unsigned long, void*, void*, vtkCommand*)) );
+    //    Connections->Connect(qvtkWidget->GetInteractor(),
+    //                         vtkCommand::LeftButtonPressEvent,
+    //                         this,
+    //                         SLOT());
 }
 
 MainWindow::~MainWindow()
@@ -250,7 +258,7 @@ void MainWindow::openMeshFile()
         light->SetFocalPoint(reader->GetOutput()->GetCenter());
 
 
-/*
+        /*
 
         vtkSmartPointer<vtkPolyDataNormals> normals =
           vtkSmartPointer<vtkPolyDataNormals>::New();
@@ -388,7 +396,7 @@ void MainWindow::processSphereWidgetInteractionEvent(vtkObject *caller, unsigned
 //void MainWindow::processMouseMoveEvent(vtkObject *caller, unsigned long, void*, void*, vtkCommand*)
 //{
 //  vtkRenderWindowInteractor *iren = reinterpret_cast<vtkRenderWindowInteractor*>(caller);
-  
+
 //  int pos[2];
 //  iren->GetEventPosition(pos);
 //  picker->Pick(pos[0], pos[1], 0, ren);
@@ -483,4 +491,68 @@ void MainWindow::processSurfaceSelectorStateChanged(int state)
     {
         contourWidget->ProcessEventsOff();
     }
+}
+
+void MainWindow::openSelection()
+{
+    QString fileName = QFileDialog::getOpenFileName(this,
+                                                    tr("Open contour"),
+                                                    "",
+                                                    tr("JSON contour(*.json)"));
+    if(fileName.isEmpty())
+    {
+        return;
+    }
+
+    Json::Value root;   // will contains the root value after parsing.
+    Json::Reader jsonReader;
+
+    ifstream infile(fileName.toStdString().c_str());
+    bool parsingSuccessful = jsonReader.parse( infile, root );
+    if ( !parsingSuccessful )
+    {
+        // report to the user the failure and their locations in the document.
+        std::cout  << "Failed to parse configuration\n"
+                   << jsonReader.getFormattedErrorMessages();
+        return;
+    }
+
+    pointPlacer->setStateInJsonFormat(root["placerInternals"], reader->GetOutput());
+
+    vtkSmartPointer<vtkPolyDataReader> nodePolyDataReader = vtkSmartPointer<vtkPolyDataReader>::New();
+    nodePolyDataReader->SetInputString(root["nodePolyData"].asString());
+    nodePolyDataReader->ReadFromInputStringOn();
+    nodePolyDataReader->Update();
+
+    contourWidget->Initialize(nodePolyDataReader->GetOutput());
+}
+
+void MainWindow::saveSelection()
+{
+    QString fileName = QFileDialog::getSaveFileName(this,
+                                                    tr("Save contour"),
+                                                    "",
+                                                    tr("JSON contour(*.json)"));
+
+    if(fileName.isEmpty())
+    {
+        return;
+    }
+
+    vtkSmartPointer<vtkPolyData> nodePolyData = vtkSmartPointer<vtkPolyData>::New();
+    contourWidget->GetContourRepresentation()->GetNodePolyData(nodePolyData);
+
+    vtkSmartPointer<vtkPolyDataWriter> nodePolyDataWriter = vtkSmartPointer<vtkPolyDataWriter>::New();
+    nodePolyDataWriter->SetInputData(nodePolyData);
+    nodePolyDataWriter->WriteToOutputStringOn();
+    nodePolyDataWriter->Write();
+
+    Json::Value contourInfo;
+    contourInfo["nodePolyData"] = nodePolyDataWriter->GetOutputStdString();
+    contourInfo["placerInternals"] = pointPlacer->getStateInJsonFormat();
+
+    ofstream outfile;
+    outfile.open (fileName.toStdString().c_str());
+    outfile << contourInfo;
+    outfile.close();
 }

@@ -4,6 +4,7 @@
 #include <QWidget>
 
 class QCheckBox;
+class QPushButton;
 
 class SurfaceSelectionWidget : public QWidget
 {
@@ -12,6 +13,9 @@ public:
     explicit SurfaceSelectionWidget(QWidget *parent = 0);
 
     QCheckBox *enableSurfaceSelectorCheckbox;
+
+    QPushButton *openContour;
+    QPushButton *saveContour;
 signals:
 
 public slots:

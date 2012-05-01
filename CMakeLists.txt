@@ -26,12 +26,13 @@ INCLUDE_DIRECTORIES(
   ${QT_INCLUDE_DIR}
   ${CMAKE_CURRENT_BINARY_DIR}
   ${CMAKE_CURRENT_SOURCE_DIR}
+  ${CMAKE_CURRENT_SOURCE_DIR}/jsoncpp/include
 )
 
 INCLUDE_DIRECTORIES(${VTK_TDX_INCLUDE_PATH})
 
 # Set your files and resources here  
-SET(ProtoMniViewerSrcs main.cxx mainwindow.cxx lookuptableselectionwidget.cxx shadingmodelselectionwidget.cxx lightingpropertieswidget.cxx surfaceselectionwidget.cxx)
+SET(ProtoMniViewerSrcs main.cxx mainwindow.cxx lookuptableselectionwidget.cxx shadingmodelselectionwidget.cxx lightingpropertieswidget.cxx surfaceselectionwidget.cxx saveablepolygonalsurfacepointplacer.cxx jsoncpp/src/lib_json/json_reader.cpp jsoncpp/src/lib_json/json_value.cpp jsoncpp/src/lib_json/json_writer.cpp)
 SET(ProtoMniViewerHeaders mainwindow.h lookuptableselectionwidget.h shadingmodelselectionwidget.h lightingpropertieswidget.h surfaceselectionwidget.h)
 SET(ProtoMniViewerResources protomniviewer.qrc)
 

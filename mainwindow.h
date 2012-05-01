@@ -18,7 +18,7 @@
 
 #include <vtkEventQtSlotConnect.h>
 #include <vtkPolygonalSurfaceContourLineInterpolator.h>
-#include <vtkPolygonalSurfacePointPlacer.h>
+#include "saveablepolygonalsurfacepointplacer.h"
 #include <vtkContourWidget.h>
 
 
@@ -59,6 +59,9 @@ private slots:
     void processLightingWidgetStateChanged(int state);
     void processSurfaceSelectorStateChanged(int state);
 
+    void openSelection();
+    void saveSelection();
+
 private:
     void createActions();
     void createMenu();
@@ -95,7 +98,7 @@ private:
 
     vtkSmartPointer<vtkContourWidget> contourWidget;
     vtkSmartPointer<vtkPolygonalSurfaceContourLineInterpolator> interpolator;
-    vtkSmartPointer<vtkPolygonalSurfacePointPlacer> pointPlacer;
+    vtkSmartPointer<SaveablePolygonalSurfacePointPlacer> pointPlacer;
 
     // Vtk objects related to marking surface
 
