@@ -543,7 +543,7 @@ void MainWindow::saveSelection()
     contourWidget->GetContourRepresentation()->GetNodePolyData(nodePolyData);
 
     vtkSmartPointer<vtkPolyDataWriter> nodePolyDataWriter = vtkSmartPointer<vtkPolyDataWriter>::New();
-    nodePolyDataWriter->SetInputData(nodePolyData);
+    nodePolyDataWriter->SetInput(nodePolyData);
     nodePolyDataWriter->WriteToOutputStringOn();
     nodePolyDataWriter->Write();
 

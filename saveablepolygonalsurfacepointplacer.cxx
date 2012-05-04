@@ -255,7 +255,7 @@ void SaveablePolygonalSurfacePointPlacer::setStateInJsonFormat(Json::Value state
         node->SurfaceWorldPosition[2] = state[i]["SurfaceWorldPosition"][2].asDouble();
 
         node->CellId = state[i]["CellId"].asLargestInt();
-        node->CellId = state[i]["PointId"].asLargestInt();
+        node->PointId = state[i]["PointId"].asLargestInt();
 
         node->ParametricCoords[0] = state[i]["ParametricCoords"][0].asDouble();
         node->ParametricCoords[1] = state[i]["ParametricCoords"][1].asDouble();
