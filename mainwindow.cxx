@@ -130,6 +130,8 @@ MainWindow::MainWindow(QWidget *parent)
 
 void MainWindow::initializeVtk()
 {
+    scalars = 0;
+
     reader = vtkSmartPointer<vtkMNIObjectReader>::New();
 
     mapper = vtkSmartPointer<vtkPolyDataMapper>::New();
@@ -186,8 +188,10 @@ void MainWindow::initializeVtk()
     //    ren->AddViewProp(redCone);
     //    ren->AddViewProp(greenCone);
 
-    //    picker = vtkSmartPointer<vtkVolumePicker>::New();
-    //    picker->SetTolerance(1e-6);
+    volumePicker = vtkSmartPointer<vtkVolumePicker>::New();
+    volumePicker->SetTolerance(1e-6);
+
+    pointPicker = vtkSmartPointer<vtkPointPicker>::New();
 
     //    redCone->SetVisibility(false);
     //    greenCone->SetVisibility(false);
@@ -219,10 +223,10 @@ void MainWindow::initializeVtk()
                          vtkCommand::InteractionEvent,
                          this,
                          SLOT(processSphereWidgetInteractionEvent(vtkObject*, unsigned long, void*, void*, vtkCommand*)) );
-    //    Connections->Connect(qvtkWidget->GetInteractor(),
-    //                         vtkCommand::MouseMoveEvent,
-    //                         this,
-    //                         SLOT(processMouseMoveEvent(vtkObject*, unsigned long, void*, void*, vtkCommand*)) );
+    Connections->Connect(qvtkWidget->GetInteractor(),
+                         vtkCommand::MouseMoveEvent,
+                         this,
+                         SLOT(processMouseMoveEvent(vtkObject*, unsigned long, void*, void*, vtkCommand*)) );
     //    Connections->Connect(qvtkWidget->GetInteractor(),
     //                         vtkCommand::LeftButtonPressEvent,
     //                         this,
@@ -310,7 +314,7 @@ void MainWindow::openPerPointScalarsFile()
         return;
     }
 
-    VTK_CREATE(vtkFloatArray, scalars);
+    scalars = vtkFloatArray::New();
     ifstream in(fileName.toStdString().c_str(), ios::in);
 
     string current_token;
@@ -393,23 +397,49 @@ void MainWindow::processSphereWidgetInteractionEvent(vtkObject *caller, unsigned
     light->SetPosition(widget->GetHandlePosition());
 }
 
-//void MainWindow::processMouseMoveEvent(vtkObject *caller, unsigned long, void*, void*, vtkCommand*)
-//{
-//  vtkRenderWindowInteractor *iren = reinterpret_cast<vtkRenderWindowInteractor*>(caller);
+void MainWindow::processMouseMoveEvent(vtkObject *caller, unsigned long, void*, void*, vtkCommand*)
+{
+    vtkRenderWindowInteractor *iren = reinterpret_cast<vtkRenderWindowInteractor*>(caller);
 
-//  int pos[2];
-//  iren->GetEventPosition(pos);
-//  picker->Pick(pos[0], pos[1], 0, ren);
-//  double p[3];
-//  double n[3];
-//  picker->GetPickPosition(p);
-//  picker->GetPickNormal(n);
-//  redCone->SetPosition(p);
-//  pointCone(redCone, n[0], n[1], n[2]);
-//  greenCone->SetPosition(p);
-//  pointCone(greenCone, -n[0], -n[1], -n[2]);
-//  iren->Render();
-//}
+    int pos[2];
+    iren->GetEventPosition(pos);
+    volumePicker->Pick(pos[0], pos[1], 0, ren);
+    double p[3];
+    double n[3];
+    volumePicker->GetPickPosition(p);
+
+    pointPicker->Pick(pos[0], pos[1], 0, ren);
+    vtkIdType pointId = pointPicker->GetPointId();
+    //picker->GetCellId()
+    //picker->GetPickNormal(n);
+    //redCone->SetPosition(p);
+    //pointCone(redCone, n[0], n[1], n[2]);
+    //greenCone->SetPosition(p);
+    //pointCone(greenCone, -n[0], -n[1], -n[2]);
+    iren->Render();
+
+    if(pointId == -1)
+    {
+        statusBar()->showMessage(tr("Current position is (%1, %2, %3)").arg(p[0]).arg(p[1]).arg(p[2]));
+    }
+    else
+    {
+        if(scalars)
+        {
+            double scalarValue;
+            scalarValue = scalars->GetTuple1(pointId);
+            statusBar()->showMessage(tr("Current position is (%1, %2, %3). Scalar value %4 .")
+                                     .arg(p[0])
+                                     .arg(p[1])
+                                     .arg(p[2])
+                                     .arg(scalarValue));
+        }
+        else
+        {
+            statusBar()->showMessage(tr("Current position is (%1, %2, %3)").arg(p[0]).arg(p[1]).arg(p[2]));
+        }
+    }
+}
 
 
 void MainWindow::pointCone(vtkActor* actorToRotate, double nx, double ny, double nz)

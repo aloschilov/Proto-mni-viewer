@@ -15,6 +15,7 @@
 #include <vtkConeSource.h>
 #include <vtkDataSetMapper.h>
 #include <vtkVolumePicker.h>
+#include <vtkPointPicker.h>
 
 #include <vtkEventQtSlotConnect.h>
 #include <vtkPolygonalSurfaceContourLineInterpolator.h>
@@ -48,7 +49,7 @@ private slots:
     void setPhongShadingModel();
 
     void processSphereWidgetInteractionEvent(vtkObject*, unsigned long, void*, void*, vtkCommand*);
-//    void processMouseMoveEvent(vtkObject*, unsigned long, void*, void*, vtkCommand*);
+    void processMouseMoveEvent(vtkObject*, unsigned long, void*, void*, vtkCommand*);
     void pointCone(vtkActor* actorToRotate, double nx, double ny, double nz);
 
     void processAmbientChanged(double value);
@@ -96,6 +97,8 @@ private:
     vtkSmartPointer<vtkLight> light;
     vtkSmartPointer<vtkSphereWidget> sphereWidget;
 
+    vtkFloatArray *scalars;
+
     vtkSmartPointer<vtkContourWidget> contourWidget;
     vtkSmartPointer<vtkPolygonalSurfaceContourLineInterpolator> interpolator;
     vtkSmartPointer<SaveablePolygonalSurfacePointPlacer> pointPlacer;
@@ -106,7 +109,8 @@ private:
     //vtkSmartPointer<vtkDataSetMapper> coneMapper;
     //vtkSmartPointer<vtkActor> redCone;
     //vtkSmartPointer<vtkActor> greenCone;
-    //vtkSmartPointer<vtkVolumePicker> picker;
+    vtkSmartPointer<vtkVolumePicker> volumePicker;
+    vtkSmartPointer<vtkPointPicker> pointPicker;
 
     //vtkSmartPointer<vtkPoints> pinsPoints;
 };
