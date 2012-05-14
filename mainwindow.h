@@ -29,6 +29,7 @@ class LookupTableSelectionWidget;
 class ShadingModelSelectionWidget;
 class LightingPropertiesWidget;
 class SurfaceSelectionWidget;
+class AnimationManagementWidget;
 
 
 class MainWindow : public QMainWindow
@@ -63,6 +64,9 @@ private slots:
     void openSelection();
     void saveSelection();
 
+    void saveCameraStateAsFirstAnimationPoint();
+    void saveCameraStateAsSecondAnimationPoint();
+    void processCurrentTimeChanged();
 private:
     void createActions();
     void createMenu();
@@ -85,6 +89,9 @@ private:
 
     QDockWidget *surfaceSelectionDockWidget;
     SurfaceSelectionWidget *surfaceSelectionWidget;
+
+    QDockWidget *animationManagementDockWidget;
+    AnimationManagementWidget *animationManagementWidget;
 
     QVTKWidget *qvtkWidget;
 

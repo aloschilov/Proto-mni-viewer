@@ -39,6 +39,7 @@
 #include "shadingmodelselectionwidget.h"
 #include "lightingpropertieswidget.h"
 #include "surfaceselectionwidget.h"
+#include "animationmanagementwidget.h"
 
 
 #define VTK_CREATE(type, name) \
@@ -93,6 +94,14 @@ MainWindow::MainWindow(QWidget *parent)
     surfaceSelectionDockWidget->setAllowedAreas(Qt::RightDockWidgetArea | Qt::LeftDockWidgetArea);
     addDockWidget(Qt::RightDockWidgetArea, surfaceSelectionDockWidget, Qt::Horizontal);
 
+
+    animationManagementWidget = new AnimationManagementWidget();
+
+    animationManagementDockWidget = new QDockWidget(tr("Animation"), this);
+    animationManagementDockWidget->setWidget(animationManagementWidget);
+    animationManagementDockWidget->setAllowedAreas(Qt::RightDockWidgetArea | Qt::LeftDockWidgetArea);
+    addDockWidget(Qt::LeftDockWidgetArea, animationManagementDockWidget, Qt::Horizontal);
+
     setCentralWidget(qvtkWidget);
 
     createActions();
@@ -126,6 +135,13 @@ MainWindow::MainWindow(QWidget *parent)
             this, SLOT(openSelection()));
     connect(surfaceSelectionWidget->saveContour, SIGNAL(clicked()),
             this, SLOT(saveSelection()));
+
+    connect(animationManagementWidget->saveCurrentStateAsStartPointButton, SIGNAL(clicked()),
+            this, SLOT(saveCameraStateAsFirstAnimationPoint()));
+    connect(animationManagementWidget->saveCurrentStateAsEndPointButton, SIGNAL(clicked()),
+            this, SLOT(saveCameraStateAsSecondAnimationPoint()));
+    connect(animationManagementWidget, SIGNAL(currentTimeChanged()),
+            this, SLOT(processCurrentTimeChanged()));
 }
 
 void MainWindow::initializeVtk()
@@ -589,4 +605,30 @@ void MainWindow::saveSelection()
     outfile.open (fileName.toStdString().c_str());
     outfile << contourInfo;
     outfile.close();
+}
+
+void MainWindow::saveCameraStateAsFirstAnimationPoint()
+{
+    double pos[3];
+    double parallelScale = ren->GetActiveCamera()->GetParallelScale();
+    ren->GetActiveCamera()->GetPosition(pos);
+    animationManagementWidget->saveCurrentCameraStateAsStartPoint(pos[0],pos[1],pos[2],parallelScale);
+}
+
+void MainWindow::saveCameraStateAsSecondAnimationPoint()
+{
+    double pos[3];
+    double parallelScale = ren->GetActiveCamera()->GetParallelScale();
+    ren->GetActiveCamera()->GetPosition(pos);
+    animationManagementWidget->saveCurrentCameraStateAsEndPoint(pos[0],pos[1],pos[2],parallelScale);
+}
+
+
+void MainWindow::processCurrentTimeChanged()
+{
+    ren->GetActiveCamera()->SetPosition(animationManagementWidget->getCurrentX(),
+                                        animationManagementWidget->getCurrentY(),
+                                        animationManagementWidget->getCurrentZ());
+    ren->ResetCameraClippingRange();
+    qvtkWidget->GetRenderWindow()->Render();
 }
