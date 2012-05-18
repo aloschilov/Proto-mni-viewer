@@ -103,8 +103,21 @@ AnimationManagementWidget::AnimationManagementWidget(QWidget *parent) :
     animationStateLayout->addWidget(animationStart);
     animationStateLayout->addWidget(currentStateOfAnimation);
     animationStateLayout->addWidget(currentStateOfAnimationLabel);
-
     mainLayout->addLayout(animationStateLayout);
+
+    writingStart = new QPushButton(tr("Write"));
+    writingStart->setEnabled(false);
+    specifyFilenameButton = new QPushButton(tr("Specify filename"));
+    pathToSaveAviFileLineEdit = new QLineEdit();
+    pathToSaveAviFileLineEdit->setReadOnly(true);
+
+    QGridLayout *aviConfigurationLayout = new QGridLayout();
+
+    aviConfigurationLayout->addWidget(specifyFilenameButton, 0, 0);
+    aviConfigurationLayout->addWidget(pathToSaveAviFileLineEdit, 0, 1);
+    aviConfigurationLayout->addWidget(writingStart, 1, 0);
+
+    mainLayout->addLayout(aviConfigurationLayout);
 
     mainLayout->addStretch();
     setLayout(mainLayout);
@@ -118,6 +131,17 @@ AnimationManagementWidget::AnimationManagementWidget(QWidget *parent) :
             this, SLOT(setCurrentTime(int)));
     connect(animationStart, SIGNAL(clicked()),
             this, SLOT(processAnimationTrigger()));
+    connect(writingStart, SIGNAL(clicked()),
+            this, SLOT(processWritingTrigger()));
+
+    connect(specifyFilenameButton, SIGNAL(clicked()),
+            this, SLOT(processSpecifyFilename()));
+
+    writingLoopThread = new WritingLoopThread();
+    writingLoopThread->setParent(this);
+
+    connect(writingLoopThread, SIGNAL(writeNextFrame()),
+            this, SLOT(processWritingFrame()), Qt::DirectConnection);
 }
 
 double AnimationManagementWidget::getCurrentX()
@@ -205,6 +229,13 @@ void AnimationManagementWidget::processAnimationTrigger()
     }
 }
 
+void AnimationManagementWidget::processWritingTrigger()
+{
+    currentStateOfAnimation->setValue(0);
+    emit writingToAviInitiated();
+    writingLoopThread->start();
+}
+
 void AnimationManagementWidget::processTimeout()
 {
     currentStateOfAnimation->setValue(currentStateOfAnimation->value()+100);
@@ -214,4 +245,38 @@ void AnimationManagementWidget::processTimeout()
         animationTimer->stop();
         currentStateOfAnimation->setValue(0);
     }
+}
+
+void AnimationManagementWidget::processWritingFrame()
+{
+    currentStateOfAnimation->setValue(currentStateOfAnimation->value()+100);
+    if(currentStateOfAnimation->value()==currentStateOfAnimation->maximum())
+    {
+        writingLoopThread->prepareForExit();
+        writingLoopThread->quit();
+        //writingLoopThread->terminate();
+        currentStateOfAnimation->setValue(0);
+        emit writingToAviCompleted();
+        return;
+    }
+
+    emit currentWritingFrameChanged();
+}
+
+void AnimationManagementWidget::processSpecifyFilename()
+{
+    QString fileName = QFileDialog::getSaveFileName(this,
+                                                    tr("Specify animation file to write"),
+                                                    "",
+                                                    tr("Animation file(*.avi)"));
+
+    if(fileName.isEmpty())
+    {
+        return;
+    }
+
+    pathToSaveAviFileLineEdit->setText(fileName);
+    writingStart->setEnabled(true);
+
+    emit currentFilenameChanged(fileName);
 }

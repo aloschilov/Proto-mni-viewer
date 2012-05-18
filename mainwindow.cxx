@@ -25,6 +25,7 @@
 #include <vtkPolyDataReader.h>
 
 #include <vtkPolyDataWriter.h>
+#include <vtkPNGWriter.h>
 
 // vtkWidgets
 
@@ -142,6 +143,15 @@ MainWindow::MainWindow(QWidget *parent)
             this, SLOT(saveCameraStateAsSecondAnimationPoint()));
     connect(animationManagementWidget, SIGNAL(currentTimeChanged()),
             this, SLOT(processCurrentTimeChanged()));
+
+    connect(animationManagementWidget, SIGNAL(writingToAviInitiated()),
+            this, SLOT(processWritingToAviInitiated()));
+    connect(animationManagementWidget, SIGNAL(currentFilenameChanged(QString)),
+            this, SLOT(processWritingAviFilenameChanged(QString)));
+    connect(animationManagementWidget, SIGNAL(currentWritingFrameChanged()),
+            this, SLOT(processCurrentWritingFrameChanged()));
+    connect(animationManagementWidget, SIGNAL(writingToAviCompleted()),
+            this, SLOT(processWritingToAviCompleted()));
 }
 
 void MainWindow::initializeVtk()
@@ -233,6 +243,12 @@ void MainWindow::initializeVtk()
 
     interpolator = vtkSmartPointer<vtkPolygonalSurfaceContourLineInterpolator>::New();
     rep->SetLineInterpolator(interpolator);
+
+    windowToImageFilter = vtkSmartPointer<vtkWindowToImageFilter>::New();
+    windowToImageFilter->SetInput(ren->GetRenderWindow());
+
+    ffmpegWriter = vtkSmartPointer<vtkFFMPEGWriter>::New();
+    ffmpegWriter->SetInputConnection(windowToImageFilter->GetOutputPort());
 
     Connections = vtkEventQtSlotConnect::New();
     Connections->Connect(sphereWidget,
@@ -631,4 +647,42 @@ void MainWindow::processCurrentTimeChanged()
                                         animationManagementWidget->getCurrentZ());
     ren->ResetCameraClippingRange();
     qvtkWidget->GetRenderWindow()->Render();
+}
+
+void MainWindow::processCurrentWritingFrameChanged()
+{
+    processCurrentTimeChanged();
+//    qDebug() << "windowToImageFilter->Update();";
+    windowToImageFilter->Modified();
+//    qDebug() << "ffmpegWriter->Write();";
+    ffmpegWriter->Write();
+
+//    vtkSmartPointer<vtkPNGWriter> writer =
+//        vtkSmartPointer<vtkPNGWriter>::New();
+//    writer->SetFileName("screenshot.png");
+//    writer->SetInputConnection(windowToImageFilter->GetOutputPort());
+//    writer->Write();
+}
+
+void MainWindow::processWritingToAviInitiated()
+{
+    qDebug() << "void MainWindow::processWritingToAviInitiated()";
+    ffmpegWriter->SetQuality(2);
+    ffmpegWriter->SetRate(24);
+//    ffmpegWriter->SetBitRate(100000);
+//    ffmpegWriter->SetBitRateTolerance(100000);
+    ffmpegWriter->Start();
+}
+
+void MainWindow::processWritingToAviCompleted()
+{
+    qDebug() << "void MainWindow::processWritingToAviCompleted()";
+    //ffmpegWriter->Delete();
+    ffmpegWriter->End();
+}
+
+void MainWindow::processWritingAviFilenameChanged(QString filename)
+{
+    qDebug() << "void MainWindow::processWritingAviFilenameChanged(QString filename)";
+    ffmpegWriter->SetFileName(filename.toStdString().c_str());
 }

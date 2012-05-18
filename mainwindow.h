@@ -16,11 +16,14 @@
 #include <vtkDataSetMapper.h>
 #include <vtkVolumePicker.h>
 #include <vtkPointPicker.h>
+#include <vtkWindowToImageFilter.h>
+#include <vtkFFMPEGWriter.h>
 
 #include <vtkEventQtSlotConnect.h>
 #include <vtkPolygonalSurfaceContourLineInterpolator.h>
 #include "saveablepolygonalsurfacepointplacer.h"
 #include <vtkContourWidget.h>
+
 
 
 // Forward declarations section
@@ -66,7 +69,13 @@ private slots:
 
     void saveCameraStateAsFirstAnimationPoint();
     void saveCameraStateAsSecondAnimationPoint();
+
     void processCurrentTimeChanged();
+
+    void processCurrentWritingFrameChanged();
+    void processWritingToAviInitiated();
+    void processWritingToAviCompleted();
+    void processWritingAviFilenameChanged(QString filename);
 private:
     void createActions();
     void createMenu();
@@ -120,6 +129,9 @@ private:
     vtkSmartPointer<vtkPointPicker> pointPicker;
 
     //vtkSmartPointer<vtkPoints> pinsPoints;
+
+    vtkSmartPointer<vtkWindowToImageFilter> windowToImageFilter;
+    vtkSmartPointer<vtkFFMPEGWriter> ffmpegWriter;
 };
 
 #endif // MAINWINDOW_H
