@@ -145,7 +145,7 @@ MainWindow::MainWindow(QWidget *parent)
             this, SLOT(processCurrentTimeChanged()));
 
     connect(animationManagementWidget, SIGNAL(writingToAviInitiated()),
-            this, SLOT(processWritingToAviInitiated()));
+            this, SLOT(processWritingToAviInitiated()), Qt::DirectConnection);
     connect(animationManagementWidget, SIGNAL(currentFilenameChanged(QString)),
             this, SLOT(processWritingAviFilenameChanged(QString)));
     connect(animationManagementWidget, SIGNAL(currentWritingFrameChanged()),
@@ -662,6 +662,7 @@ void MainWindow::processCurrentWritingFrameChanged()
 //    writer->SetFileName("screenshot.png");
 //    writer->SetInputConnection(windowToImageFilter->GetOutputPort());
 //    writer->Write();
+    animationManagementWidget->processFrameIsWritten();
 }
 
 void MainWindow::processWritingToAviInitiated()
@@ -679,6 +680,10 @@ void MainWindow::processWritingToAviCompleted()
     qDebug() << "void MainWindow::processWritingToAviCompleted()";
     //ffmpegWriter->Delete();
     ffmpegWriter->End();
+    //delete ffmpegWriter->GetPointer();
+    //ffmpegWriter->Delete();
+    //ffmpegWriter = vtkSmartPointer<vtkFFMPEGWriter>::New();
+    //ffmpegWriter->SetInputConnection(windowToImageFilter->GetOutputPort());
 }
 
 void MainWindow::processWritingAviFilenameChanged(QString filename)

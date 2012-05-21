@@ -139,9 +139,6 @@ AnimationManagementWidget::AnimationManagementWidget(QWidget *parent) :
 
     writingLoopThread = new WritingLoopThread();
     writingLoopThread->setParent(this);
-
-    connect(writingLoopThread, SIGNAL(writeNextFrame()),
-            this, SLOT(processWritingFrame()), Qt::DirectConnection);
 }
 
 double AnimationManagementWidget::getCurrentX()
@@ -177,6 +174,11 @@ void AnimationManagementWidget::saveCurrentCameraStateAsEndPoint(double x, doubl
     secondPointScaleDoubleSpinBox->setValue(scale);
 
     updateEndValueFromControls();
+}
+
+void AnimationManagementWidget::processFrameIsWritten()
+{
+    writingLoopThread->allowNextSignal();
 }
 
 void AnimationManagementWidget::updateStartValueFromControls()
@@ -233,6 +235,8 @@ void AnimationManagementWidget::processWritingTrigger()
 {
     currentStateOfAnimation->setValue(0);
     emit writingToAviInitiated();
+    connect(writingLoopThread, SIGNAL(writeNextFrame()),
+            this, SLOT(processWritingFrame()));
     writingLoopThread->start();
 }
 
@@ -249,12 +253,19 @@ void AnimationManagementWidget::processTimeout()
 
 void AnimationManagementWidget::processWritingFrame()
 {
-    currentStateOfAnimation->setValue(currentStateOfAnimation->value()+100);
-    if(currentStateOfAnimation->value()==currentStateOfAnimation->maximum())
+    if(!writingLoopThread->isRunning())
     {
+        return;
+    }
+    currentStateOfAnimation->setValue(currentStateOfAnimation->value()+100);
+    if(currentStateOfAnimation->value() >= currentStateOfAnimation->maximum())
+    {
+        disconnect(writingLoopThread, SIGNAL(writeNextFrame()),
+                this, SLOT(processWritingFrame()));
         writingLoopThread->prepareForExit();
-        writingLoopThread->quit();
-        //writingLoopThread->terminate();
+        writingLoopThread->allowNextSignal();
+        writingLoopThread->wait();
+        writingLoopThread->terminate();
         currentStateOfAnimation->setValue(0);
         emit writingToAviCompleted();
         return;
