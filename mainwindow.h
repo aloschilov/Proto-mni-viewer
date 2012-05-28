@@ -67,8 +67,8 @@ private slots:
     void openSelection();
     void saveSelection();
 
-    void saveCameraStateAsFirstAnimationPoint();
-    void saveCameraStateAsSecondAnimationPoint();
+    void saveObjectStateAsFirstAnimationPoint();
+    void saveObjectStateAsSecondAnimationPoint();
 
     void processCurrentTimeChanged();
 

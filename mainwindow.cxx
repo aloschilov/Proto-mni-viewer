@@ -21,6 +21,7 @@
 
 #include <vtkOrientedGlyphContourRepresentation.h>
 #include <vtkPolyDataCollection.h>
+#include <vtkInteractorStyleTrackballActor.h>
 
 #include <vtkPolyDataReader.h>
 
@@ -138,9 +139,9 @@ MainWindow::MainWindow(QWidget *parent)
             this, SLOT(saveSelection()));
 
     connect(animationManagementWidget->saveCurrentStateAsStartPointButton, SIGNAL(clicked()),
-            this, SLOT(saveCameraStateAsFirstAnimationPoint()));
+            this, SLOT(saveObjectStateAsFirstAnimationPoint()));
     connect(animationManagementWidget->saveCurrentStateAsEndPointButton, SIGNAL(clicked()),
-            this, SLOT(saveCameraStateAsSecondAnimationPoint()));
+            this, SLOT(saveObjectStateAsSecondAnimationPoint()));
     connect(animationManagementWidget, SIGNAL(currentTimeChanged()),
             this, SLOT(processCurrentTimeChanged()));
 
@@ -263,6 +264,11 @@ void MainWindow::initializeVtk()
     //                         vtkCommand::LeftButtonPressEvent,
     //                         this,
     //                         SLOT());
+
+    vtkSmartPointer<vtkInteractorStyleTrackballActor> style =
+      vtkSmartPointer<vtkInteractorStyleTrackballActor>::New();
+
+    qvtkWidget->GetInteractor()->SetInteractorStyle(style);
 }
 
 MainWindow::~MainWindow()
@@ -623,28 +629,53 @@ void MainWindow::saveSelection()
     outfile.close();
 }
 
-void MainWindow::saveCameraStateAsFirstAnimationPoint()
+void MainWindow::saveObjectStateAsFirstAnimationPoint()
 {
     double pos[3];
-    double parallelScale = ren->GetActiveCamera()->GetParallelScale();
-    ren->GetActiveCamera()->GetPosition(pos);
-    animationManagementWidget->saveCurrentCameraStateAsStartPoint(pos[0],pos[1],pos[2],parallelScale);
+    double o[3];
+    double scale[3];
+
+    actor->GetPosition(pos);
+    actor->GetOrientation(o);
+    actor->GetScale(scale);
+    animationManagementWidget->saveCurrentObjectStateAsStartPoint(
+                pos[0],
+                pos[1],
+                pos[2],
+                1.0,
+                o[0],
+                o[1],
+                o[2]);
 }
 
-void MainWindow::saveCameraStateAsSecondAnimationPoint()
+void MainWindow::saveObjectStateAsSecondAnimationPoint()
 {
     double pos[3];
-    double parallelScale = ren->GetActiveCamera()->GetParallelScale();
-    ren->GetActiveCamera()->GetPosition(pos);
-    animationManagementWidget->saveCurrentCameraStateAsEndPoint(pos[0],pos[1],pos[2],parallelScale);
+    double o[3];
+    double scale[3];
+
+    actor->GetPosition(pos);
+    actor->GetOrientation(o);
+    actor->GetScale(scale);
+    animationManagementWidget->saveCurrentObjectStateAsEndPoint(
+                pos[0],
+                pos[1],
+                pos[2],
+                1.0,
+                o[0],
+                o[1],
+                o[2]);
 }
 
 
 void MainWindow::processCurrentTimeChanged()
 {
-    ren->GetActiveCamera()->SetPosition(animationManagementWidget->getCurrentX(),
-                                        animationManagementWidget->getCurrentY(),
-                                        animationManagementWidget->getCurrentZ());
+    actor->SetPosition(animationManagementWidget->getCurrentX(),
+                       animationManagementWidget->getCurrentY(),
+                       animationManagementWidget->getCurrentZ());
+    actor->SetOrientation(animationManagementWidget->getCurrentRotX(),
+                          animationManagementWidget->getCurrentRotY(),
+                          animationManagementWidget->getCurrentRotZ());
     ren->ResetCameraClippingRange();
     qvtkWidget->GetRenderWindow()->Render();
 }

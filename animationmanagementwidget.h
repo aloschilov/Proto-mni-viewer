@@ -84,6 +84,10 @@ public:
     double getCurrentY();
     double getCurrentZ();
 
+    double getCurrentRotX();
+    double getCurrentRotY();
+    double getCurrentRotZ();
+
 signals:
     void currentTimeChanged();
     void writingToAviInitiated();
@@ -91,8 +95,8 @@ signals:
     void writingToAviCompleted();
     void currentFilenameChanged(QString filename);
 public slots:
-    void saveCurrentCameraStateAsStartPoint(double x, double y, double z, double scale);
-    void saveCurrentCameraStateAsEndPoint(double x, double y, double z, double scale);
+    void saveCurrentObjectStateAsStartPoint(double x, double y, double z, double scale, double rotX, double rotY, double rotZ);
+    void saveCurrentObjectStateAsEndPoint(double x, double y, double z, double scale, double rotX, double rotY, double rotZ);
     void processFrameIsWritten();
 
 private slots:
@@ -122,15 +126,29 @@ private:
     QPropertyAnimation xAnimation;
     QPropertyAnimation yAnimation;
     QPropertyAnimation zAnimation;
+    QPropertyAnimation xRotAnimation;
+    QPropertyAnimation yRotAnimation;
+    QPropertyAnimation zRotAnimation;
+
 
     QDoubleSpinBox *firstPointXDoubleSpinBox;
     QDoubleSpinBox *firstPointYDoubleSpinBox;
     QDoubleSpinBox *firstPointZDoubleSpinBox;
+
+    QDoubleSpinBox *firstPointRotXDoubleSpinBox;
+    QDoubleSpinBox *firstPointRotYDoubleSpinBox;
+    QDoubleSpinBox *firstPointRotZDoubleSpinBox;
+
     QDoubleSpinBox *firstPointScaleDoubleSpinBox;
 
     QDoubleSpinBox *secondPointXDoubleSpinBox;
     QDoubleSpinBox *secondPointYDoubleSpinBox;
     QDoubleSpinBox *secondPointZDoubleSpinBox;
+
+    QDoubleSpinBox *secondPointRotXDoubleSpinBox;
+    QDoubleSpinBox *secondPointRotYDoubleSpinBox;
+    QDoubleSpinBox *secondPointRotZDoubleSpinBox;
+
     QDoubleSpinBox *secondPointScaleDoubleSpinBox;
 
     QSpinBox *animationPeriodSpinBox;
