@@ -46,6 +46,10 @@ public:
 private slots:
     void openMeshFile();
     void openPerPointScalarsFile();
+
+    void openPerPointRgbFile();
+    void savePerPointRgbFile();
+
     void updateLookupTable(vtkSmartPointer<vtkLookupTable> lookupTable);
 
     void setFlatShadingModel();
@@ -54,6 +58,7 @@ private slots:
 
     void processSphereWidgetInteractionEvent(vtkObject*, unsigned long, void*, void*, vtkCommand*);
     void processMouseMoveEvent(vtkObject*, unsigned long, void*, void*, vtkCommand*);
+    void processLeftButtonPressEvent(vtkObject*, unsigned long, void*, void*, vtkCommand*);
     void pointCone(vtkActor* actorToRotate, double nx, double ny, double nz);
 
     void processAmbientChanged(double value);
@@ -86,6 +91,8 @@ private:
 
     QAction *openMeshFileAction;
     QAction *openPerPointScalarsFileAction;
+    QAction *openPerPointRgbFileAction;
+    QAction *savePerPointRgbFileAction;
     
     QDockWidget *lookupTableSelectionDockWidget;
     LookupTableSelectionWidget *lookupTableSelectionWidget;

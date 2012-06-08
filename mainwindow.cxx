@@ -15,6 +15,7 @@
 #include <vtkScalarBarActor.h>
 #include <vtkLookupTable.h>
 #include <vtkFloatArray.h>
+#include <vtkDoubleArray.h>
 #include <vtkPointData.h>
 #include <vtkProperty.h>
 #include <vtkCamera.h>
@@ -260,10 +261,10 @@ void MainWindow::initializeVtk()
                          vtkCommand::MouseMoveEvent,
                          this,
                          SLOT(processMouseMoveEvent(vtkObject*, unsigned long, void*, void*, vtkCommand*)) );
-    //    Connections->Connect(qvtkWidget->GetInteractor(),
-    //                         vtkCommand::LeftButtonPressEvent,
-    //                         this,
-    //                         SLOT());
+        Connections->Connect(qvtkWidget->GetInteractor(),
+                             vtkCommand::LeftButtonPressEvent,
+                             this,
+                             SLOT(processLeftButtonPressEvent(vtkObject*,ulong,void*,void*,vtkCommand*)));
 
     vtkSmartPointer<vtkInteractorStyleTrackballActor> style =
       vtkSmartPointer<vtkInteractorStyleTrackballActor>::New();
@@ -380,6 +381,94 @@ void MainWindow::openPerPointScalarsFile()
     reader->GetOutput()->Print(cout);
 }
 
+void MainWindow::openPerPointRgbFile()
+{
+    QString fileName = QFileDialog::getOpenFileName(this,
+                                                    tr("Open colormap as per vertex RGB."),
+                                                    "",
+                                                    tr("RGB file(*.rgb)"));
+    if(fileName.isEmpty())
+    {
+        return;
+    }
+
+    ifstream in(fileName.toStdString().c_str(), ios::in);
+
+    string current_token;
+
+
+    // Setup colors
+
+    vtkSmartPointer<vtkUnsignedCharArray> colors =
+      vtkSmartPointer<vtkUnsignedCharArray>::New();
+    colors->SetNumberOfComponents(3);
+    colors->SetName ("Colors");
+
+    while(!in.eof())
+    {
+        int rgb[3];
+
+        in >> rgb[0];
+        in >> rgb[1];
+        in >> rgb[2];
+
+        unsigned char value[3];
+
+        value[0] = rgb[0];
+        value[1] = rgb[1];
+        value[2] = rgb[2];
+
+        colors->InsertNextTupleValue(value);
+    }
+
+    mapper->SetLookupTable(0);
+    mapper->SetColorModeToDefault();
+    reader->GetOutput()->GetPointData()->SetScalars(colors);
+
+}
+
+void MainWindow::savePerPointRgbFile()
+{
+    QString fileName = QFileDialog::getSaveFileName(this,
+                                                    tr("Save colormap as per vertex RGB"),
+                                                    "",
+                                                    tr("RGB file(*.rgb)"));
+
+    if(fileName.isEmpty())
+    {
+        return;
+    }
+
+
+    vtkDataArray* dataArray;
+    dataArray = reader->GetOutput()->GetPointData()->GetScalars();
+
+    if(dataArray != 0)
+    {
+        ofstream rgbOutFile;
+        rgbOutFile.open (fileName.toStdString().c_str());
+
+        dataArray->Print(cout);
+        int size = dataArray->GetSize();
+
+        for(int i=0; i<size; ++i)
+        {
+            unsigned char *value;
+
+            value = lookupTableSelectionWidget->getCurrentLookupTable()->MapValue(dataArray->GetTuple1(i));
+
+            rgbOutFile << int(value[0]) << " " << int(value[1]) << " " << int(value[2]) << endl;
+        }
+
+        rgbOutFile.close();
+    }
+    else
+    {
+        //dataArray = reader->GetOutput()->GetPointData()->GetScalars("Colors");
+        //dataArray->Print(cout);
+    }
+}
+
 void MainWindow::updateLookupTable(vtkSmartPointer<vtkLookupTable> lookupTable)
 {
     mapper->SetLookupTable(lookupTable);
@@ -389,15 +478,20 @@ void MainWindow::updateLookupTable(vtkSmartPointer<vtkLookupTable> lookupTable)
 
 void MainWindow::createActions()
 {
-    // Open file action
-    openMeshFileAction = new QAction(QIcon(":/images/open.png"), QString("&Open"), this);
+    // Open MNI-object file action
+    openMeshFileAction = new QAction(QIcon(":/images/open.png"), tr("&Open"), this);
     openMeshFileAction->setShortcut(QKeySequence::Open);
     connect(openMeshFileAction, SIGNAL(triggered()), this, SLOT(openMeshFile()));
 
-    //
-    openPerPointScalarsFileAction = new QAction(QString("Open &scalars file"), this);
-    //openPerPointScalarsFileAction->setShortcut();
+    // Open scalars file corresponding to MNI-object
+    openPerPointScalarsFileAction = new QAction(tr("Open &scalars file"), this);
     connect(openPerPointScalarsFileAction, SIGNAL(triggered()), this, SLOT(openPerPointScalarsFile()));
+
+    openPerPointRgbFileAction = new QAction(tr("Open per vertex RGB file"), this);
+    connect(openPerPointRgbFileAction, SIGNAL(triggered()), this, SLOT(openPerPointRgbFile()));
+
+    savePerPointRgbFileAction = new QAction(tr("Save per vertex RGB file"), this);
+    connect(savePerPointRgbFileAction, SIGNAL(triggered()), this, SLOT(savePerPointRgbFile()));
 }
 
 void MainWindow::createMenu()
@@ -406,6 +500,8 @@ void MainWindow::createMenu()
     QMenu *file = menubar->addMenu("&File");
     file->addAction(openMeshFileAction);
     file->addAction(openPerPointScalarsFileAction);
+    file->addAction(savePerPointRgbFileAction);
+    file->addAction(openPerPointRgbFileAction);
 
     QMenu *view = menubar->addMenu("&View");
     view->addAction(lookupTableSelectionDockWidget->toggleViewAction());
@@ -479,6 +575,33 @@ void MainWindow::processMouseMoveEvent(vtkObject *caller, unsigned long, void*, 
     }
 }
 
+void MainWindow::processLeftButtonPressEvent(vtkObject *caller, unsigned long, void*, void*, vtkCommand*)
+{
+    vtkRenderWindowInteractor *iren = reinterpret_cast<vtkRenderWindowInteractor*>(caller);
+
+    int pos[2];
+    iren->GetEventPosition(pos);
+    volumePicker->Pick(pos[0], pos[1], 0, ren);
+    double p[3];
+    double n[3];
+    volumePicker->GetPickPosition(p);
+
+    pointPicker->Pick(pos[0], pos[1], 0, ren);
+    vtkIdType pointId = pointPicker->GetPointId();
+
+    if(pointId != -1)
+    {
+        if(scalars)
+        {
+            double scalarValue;
+            double color[3];
+            scalarValue = scalars->GetTuple1(pointId);
+            mapper->GetLookupTable()->GetColor(scalarValue, color);
+            cout << "id " << pointId << " (" << p[0] << " " << p[1] << " " << p[2] << ") " << scalarValue <<
+                    " (" << color[0] << " " << color[1] << " " << color[2] << ") "  << endl;
+        }
+    }
+}
 
 void MainWindow::pointCone(vtkActor* actorToRotate, double nx, double ny, double nz)
 {

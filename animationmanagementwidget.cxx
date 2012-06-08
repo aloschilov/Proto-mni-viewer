@@ -173,6 +173,38 @@ AnimationManagementWidget::AnimationManagementWidget(QWidget *parent) :
     connect(specifyFilenameButton, SIGNAL(clicked()),
             this, SLOT(processSpecifyFilename()));
 
+
+    connect(firstPointXDoubleSpinBox, SIGNAL(valueChanged(double)),
+            this, SLOT(processFirstPointXDoubleSpinBoxValueChanged(double)));
+    connect(firstPointYDoubleSpinBox, SIGNAL(valueChanged(double)),
+            this, SLOT(processFirstPointYDoubleSpinBoxValueChanged(double)));
+    connect(firstPointZDoubleSpinBox, SIGNAL(valueChanged(double)),
+            this, SLOT(processFirstPointZDoubleSpinBoxValueChanged(double)));
+    connect(firstPointRotXDoubleSpinBox, SIGNAL(valueChanged(double)),
+            this, SLOT(processFirstPointRotXDoubleSpinBoxValueChanged(double)));
+    connect(firstPointRotYDoubleSpinBox, SIGNAL(valueChanged(double)),
+            this, SLOT(processFirstPointRotYDoubleSpinBoxValueChanged(double)));
+    connect(firstPointRotZDoubleSpinBox, SIGNAL(valueChanged(double)),
+            this, SLOT(processFirstPointRotZDoubleSpinBoxValueChanged(double)));
+    connect(firstPointScaleDoubleSpinBox, SIGNAL(valueChanged(double)),
+            this, SLOT(processFirstPointScaleDoubleSpinBoxValueChanged(double)));
+
+    connect(secondPointXDoubleSpinBox, SIGNAL(valueChanged(double)),
+            this, SLOT(processSecondPointXDoubleSpinBoxValueChanged(double)));
+    connect(secondPointYDoubleSpinBox, SIGNAL(valueChanged(double)),
+            this, SLOT(processSecondPointYDoubleSpinBoxValueChanged(double)));
+    connect(secondPointZDoubleSpinBox, SIGNAL(valueChanged(double)),
+            this, SLOT(processSecondPointZDoubleSpinBoxValueChanged(double)));
+
+    connect(secondPointRotXDoubleSpinBox, SIGNAL(valueChanged(double)),
+            this, SLOT(processSecondPointRotXDoubleSpinBoxValueChanged(double)));
+    connect(secondPointRotYDoubleSpinBox, SIGNAL(valueChanged(double)),
+            this, SLOT(processSecondPointRotYDoubleSpinBoxValueChanged(double)));
+    connect(secondPointRotZDoubleSpinBox, SIGNAL(valueChanged(double)),
+            this, SLOT(processSecondPointRotZDoubleSpinBoxValueChanged(double)));
+    connect(secondPointRotZDoubleSpinBox, SIGNAL(valueChanged(double)),
+            this, SLOT(processSecondPointScaleDoubleSpinBoxValueChanged(double)));
+
     writingLoopThread = new WritingLoopThread();
     writingLoopThread->setParent(this);
 }
@@ -360,4 +392,74 @@ void AnimationManagementWidget::processSpecifyFilename()
     writingStart->setEnabled(true);
 
     emit currentFilenameChanged(fileName);
+}
+
+void AnimationManagementWidget::processFirstPointXDoubleSpinBoxValueChanged(double value)
+{
+    updateStartValueFromControls();
+}
+
+void AnimationManagementWidget::processFirstPointYDoubleSpinBoxValueChanged(double value)
+{
+    updateStartValueFromControls();
+}
+
+void AnimationManagementWidget::processFirstPointZDoubleSpinBoxValueChanged(double value)
+{
+    updateStartValueFromControls();
+}
+
+void AnimationManagementWidget::processFirstPointRotXDoubleSpinBoxValueChanged(double value)
+{
+    updateStartValueFromControls();
+}
+
+void AnimationManagementWidget::processFirstPointRotYDoubleSpinBoxValueChanged(double value)
+{
+    updateStartValueFromControls();
+}
+
+void AnimationManagementWidget::processFirstPointRotZDoubleSpinBoxValueChanged(double value)
+{
+    updateStartValueFromControls();
+}
+
+void AnimationManagementWidget::processFirstPointScaleDoubleSpinBoxValueChanged(double value)
+{
+    updateStartValueFromControls();
+}
+
+void AnimationManagementWidget::processSecondPointXDoubleSpinBoxValueChanged(double value)
+{
+    updateEndValueFromControls();
+}
+
+void AnimationManagementWidget::processSecondPointYDoubleSpinBoxValueChanged(double value)
+{
+    updateEndValueFromControls();
+}
+
+void AnimationManagementWidget::processSecondPointZDoubleSpinBoxValueChanged(double value)
+{
+    updateEndValueFromControls();
+}
+
+void AnimationManagementWidget::processSecondPointRotXDoubleSpinBoxValueChanged(double value)
+{
+    updateEndValueFromControls();
+}
+
+void AnimationManagementWidget::processSecondPointRotYDoubleSpinBoxValueChanged(double value)
+{
+    updateEndValueFromControls();
+}
+
+void AnimationManagementWidget::processSecondPointRotZDoubleSpinBoxValueChanged(double value)
+{
+    updateEndValueFromControls();
+}
+
+void AnimationManagementWidget::processSecondPointScaleDoubleSpinBoxValueChanged(double value)
+{
+    updateEndValueFromControls();
 }

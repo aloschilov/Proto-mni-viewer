@@ -111,6 +111,27 @@ private slots:
     void processWritingFrame();
 
     void processSpecifyFilename();
+
+    void processFirstPointXDoubleSpinBoxValueChanged(double value);
+    void processFirstPointYDoubleSpinBoxValueChanged(double value);
+    void processFirstPointZDoubleSpinBoxValueChanged(double value);
+
+    void processFirstPointRotXDoubleSpinBoxValueChanged(double value);
+    void processFirstPointRotYDoubleSpinBoxValueChanged(double value);
+    void processFirstPointRotZDoubleSpinBoxValueChanged(double value);
+
+    void processFirstPointScaleDoubleSpinBoxValueChanged(double value);
+
+    void processSecondPointXDoubleSpinBoxValueChanged(double value);
+    void processSecondPointYDoubleSpinBoxValueChanged(double value);
+    void processSecondPointZDoubleSpinBoxValueChanged(double value);
+
+    void processSecondPointRotXDoubleSpinBoxValueChanged(double value);
+    void processSecondPointRotYDoubleSpinBoxValueChanged(double value);
+    void processSecondPointRotZDoubleSpinBoxValueChanged(double value);
+
+    void processSecondPointScaleDoubleSpinBoxValueChanged(double value);
+
 private:
 
     QLabel *currentStateOfAnimationLabel;
