@@ -22,19 +22,30 @@ LookupTableSelectionWidget::LookupTableSelectionWidget(QWidget *parent) :
     addLookupTableByImageFilename(":colormaps/topograph.bmp");
     lookupTablesButtonGroup->addButton(new QRadioButton(tr("Topograph")),4);
 
-    QVBoxLayout *mainLayout = new QVBoxLayout();
+    QGroupBox *customColormapGroupBox = createCustomColormapGroupBox();
+
+    mainLayout = new QVBoxLayout();
 
     QAbstractButton *button;
     lookupTablesButtonGroup->button(0)->setChecked(true);
+
     foreach (button, lookupTablesButtonGroup->buttons())
     {
         mainLayout->addWidget(button);
     }
+
+    mainLayout->addWidget(customColormapGroupBox);
+
     mainLayout->addStretch();
     setLayout(mainLayout);
 
     connect(lookupTablesButtonGroup, SIGNAL(buttonClicked(int)),
             this, SLOT(processButtonGroupButtonClicked(int)));
+
+    connect(specifyFileToUseAsColormap, SIGNAL(clicked()),
+            this, SLOT(processSpecifyFileToUseAsColormap()));
+    connect(addCustomColormapToList, SIGNAL(clicked()),
+            this, SLOT(processAddCustomColormapToList()));
 }
 
 vtkSmartPointer<vtkLookupTable > LookupTableSelectionWidget::getCurrentLookupTable()
@@ -45,6 +56,38 @@ vtkSmartPointer<vtkLookupTable > LookupTableSelectionWidget::getCurrentLookupTab
 void LookupTableSelectionWidget::processButtonGroupButtonClicked(int /*id*/)
 {
     emit currentLookupTableChanged(builtinLookupTables[lookupTablesButtonGroup->checkedId()]);
+}
+
+void LookupTableSelectionWidget::processAddCustomColormapToList()
+{
+    if(!pathToColormapFileLineEdit->text().isEmpty())
+    {
+        addLookupTableByImageFilename(pathToColormapFileLineEdit->text());
+
+        lookupTablesButtonGroup->addButton(new QRadioButton(pathToColormapFileLineEdit->text()),
+                                                            lookupTablesButtonGroup->buttons().size());
+        relayoutColormaps();
+    }
+}
+
+void LookupTableSelectionWidget::processSpecifyFileToUseAsColormap()
+{
+    QString fileName = QFileDialog::getOpenFileName(this,
+                                                    tr("Select a file to use as colormap."),
+                                                    "",
+                                                    tr("Image file (*.png *.bmp *.jpg)"));
+    if(fileName.isEmpty())
+    {
+        return;
+    }
+
+    QImage imageToTestFileContent;
+
+    if(imageToTestFileContent.load(fileName))
+    {
+        pathToColormapFileLineEdit->setText(fileName);
+        addCustomColormapToList->setEnabled(true);
+    }
 }
 
 void LookupTableSelectionWidget::addLookupTableByImageFilename(const QString &filename)
@@ -64,4 +107,51 @@ void LookupTableSelectionWidget::addLookupTableByImageFilename(const QString &fi
 
     lookupTableToAdd->Build();
     builtinLookupTables.push_back(lookupTableToAdd);
+}
+
+QGroupBox *LookupTableSelectionWidget::createCustomColormapGroupBox()
+{
+    QGroupBox *groupBox = new QGroupBox(tr("Custom colormap"));
+
+    QVBoxLayout *groupBoxLayout = new QVBoxLayout();
+    groupBox->setLayout(groupBoxLayout);
+
+    pathToColormapFileLineEdit = new QLineEdit();
+    pathToColormapFileLineEdit->setReadOnly(true);
+
+    specifyFileToUseAsColormap = new QToolButton();
+    specifyFileToUseAsColormap->setIcon(QIcon(":/images/open.png"));
+
+    addCustomColormapToList = new QToolButton();
+    addCustomColormapToList->setIcon(QIcon(":/images/add.png"));
+    addCustomColormapToList->setEnabled(false);
+
+    QHBoxLayout *buttonsLayout = new QHBoxLayout();
+    buttonsLayout->addStretch();
+    buttonsLayout->addWidget(specifyFileToUseAsColormap);
+    buttonsLayout->addWidget(addCustomColormapToList);
+
+    groupBoxLayout->addWidget(pathToColormapFileLineEdit);
+    groupBoxLayout->addLayout(buttonsLayout);
+
+    return groupBox;
+}
+
+void LookupTableSelectionWidget::relayoutColormaps()
+{
+    QAbstractButton *button;
+
+    foreach (button, lookupTablesButtonGroup->buttons())
+    {
+        mainLayout->removeWidget(button);
+    }
+
+    int id=0;
+
+    foreach (button, lookupTablesButtonGroup->buttons())
+    {
+        mainLayout->insertWidget(id, button);
+
+        ++id;
+    }
 }

@@ -11,5 +11,7 @@
         <file>colormaps/rainbow.bmp</file>
         <file>colormaps/grayscale.bmp</file>
         <file>colormaps/fire.bmp</file>
+        <file>images/add.png</file>
+        <file>images/del.png</file>
     </qresource>
 </RCC>
