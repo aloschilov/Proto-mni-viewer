@@ -113,6 +113,8 @@ MainWindow::MainWindow(QWidget *parent)
 
     connect(lookupTableSelectionWidget, SIGNAL(currentLookupTableChanged(vtkSmartPointer<vtkLookupTable>)),
             this, SLOT(updateLookupTable(vtkSmartPointer<vtkLookupTable>)));
+    connect(lookupTableSelectionWidget, SIGNAL(currentPerVertexColorsChanged(vtkSmartPointer<vtkUnsignedCharArray> )),
+            this, SLOT(updateDirectRgbColors(vtkSmartPointer<vtkUnsignedCharArray> )));
 
     connect(shadingModelSelectionWidget, SIGNAL(shadingModelChangedToFlat()),
             this, SLOT(setFlatShadingModel()));
@@ -159,6 +161,8 @@ MainWindow::MainWindow(QWidget *parent)
 void MainWindow::initializeVtk()
 {
     scalars = 0;
+    min = 0.0;
+    max = 1.0;
 
     reader = vtkSmartPointer<vtkMNIObjectReader>::New();
 
@@ -358,8 +362,6 @@ void MainWindow::openPerPointScalarsFile()
 
     string current_token;
     int i =0;
-    double max;
-    double min;
 
     while(!in.eof()) {
         in >> current_token;
@@ -378,52 +380,13 @@ void MainWindow::openPerPointScalarsFile()
 
     reader->GetOutput()->GetPointData()->SetScalars(scalars);
     mapper->SetScalarRange(min, max);
-    reader->GetOutput()->Print(cout);
 }
 
 void MainWindow::openPerPointRgbFile()
 {
-    QString fileName = QFileDialog::getOpenFileName(this,
-                                                    tr("Open colormap as per vertex RGB."),
-                                                    "",
-                                                    tr("RGB file(*.rgb)"));
-    if(fileName.isEmpty())
-    {
-        return;
-    }
-
-    ifstream in(fileName.toStdString().c_str(), ios::in);
-
-    string current_token;
-
-
-    // Setup colors
-
-    vtkSmartPointer<vtkUnsignedCharArray> colors =
-      vtkSmartPointer<vtkUnsignedCharArray>::New();
-    colors->SetNumberOfComponents(3);
-    colors->SetName ("Colors");
-
-    while(!in.eof())
-    {
-        int rgb[3];
-
-        in >> rgb[0];
-        in >> rgb[1];
-        in >> rgb[2];
-
-        unsigned char value[3];
-
-        value[0] = rgb[0];
-        value[1] = rgb[1];
-        value[2] = rgb[2];
-
-        colors->InsertNextTupleValue(value);
-    }
-
-    mapper->SetLookupTable(0);
-    mapper->SetColorModeToDefault();
-    reader->GetOutput()->GetPointData()->SetScalars(colors);
+//    mapper->SetLookupTable(0);
+//    mapper->SetColorModeToDefault();
+//    reader->GetOutput()->GetPointData()->SetScalars(colors);
 
 }
 
@@ -472,7 +435,20 @@ void MainWindow::savePerPointRgbFile()
 void MainWindow::updateLookupTable(vtkSmartPointer<vtkLookupTable> lookupTable)
 {
     mapper->SetLookupTable(lookupTable);
+    mapper->SetColorModeToMapScalars();
+    scalar_bar->VisibilityOn();
     scalar_bar->SetLookupTable(lookupTable);
+    qvtkWidget->GetRenderWindow()->Render();
+    reader->GetOutput()->GetPointData()->SetScalars(scalars);
+    mapper->SetScalarRange(min, max);
+}
+
+void MainWindow::updateDirectRgbColors(vtkSmartPointer<vtkUnsignedCharArray> colors)
+{
+    mapper->SetLookupTable(0);
+    mapper->SetColorModeToDefault();
+    reader->GetOutput()->GetPointData()->SetScalars(colors);
+    scalar_bar->VisibilityOff();
     qvtkWidget->GetRenderWindow()->Render();
 }
 

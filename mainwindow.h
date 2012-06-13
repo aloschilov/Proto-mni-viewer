@@ -51,6 +51,7 @@ private slots:
     void savePerPointRgbFile();
 
     void updateLookupTable(vtkSmartPointer<vtkLookupTable> lookupTable);
+    void updateDirectRgbColors(vtkSmartPointer<vtkUnsignedCharArray> colors);
 
     void setFlatShadingModel();
     void setGouraudShadingModel();
@@ -121,6 +122,8 @@ private:
     vtkSmartPointer<vtkSphereWidget> sphereWidget;
 
     vtkFloatArray *scalars;
+    float min;
+    float max;
 
     vtkSmartPointer<vtkContourWidget> contourWidget;
     vtkSmartPointer<vtkPolygonalSurfaceContourLineInterpolator> interpolator;
