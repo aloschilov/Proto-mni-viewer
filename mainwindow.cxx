@@ -459,9 +459,9 @@ void MainWindow::updateDirectRgbColors(vtkSmartPointer<vtkUnsignedCharArray> col
     {
         unsigned char value[3];
 
-        value[0] = 0;
-        value[1] = 0;
-        value[2] = 0;
+        value[0] = 255;
+        value[1] = 255;
+        value[2] = 255;
 
         colors->InsertNextTupleValue(value);
     }
