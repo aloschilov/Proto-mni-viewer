@@ -447,6 +447,25 @@ void MainWindow::updateDirectRgbColors(vtkSmartPointer<vtkUnsignedCharArray> col
 {
     mapper->SetLookupTable(0);
     mapper->SetColorModeToDefault();
+
+    // Detect number of color tuples to add
+
+    int numberOfPointTuples = reader->GetOutput()->GetPointData()->GetNumberOfTuples();
+    int numberOfRgbTuplesToAdd = numberOfPointTuples - colors->GetNumberOfTuples();
+
+    qDebug() << "numberOfRgbTuplesToAdd:" << numberOfRgbTuplesToAdd;
+
+    for(int i = 0; i < numberOfRgbTuplesToAdd; ++i)
+    {
+        unsigned char value[3];
+
+        value[0] = 0;
+        value[1] = 0;
+        value[2] = 0;
+
+        colors->InsertNextTupleValue(value);
+    }
+
     reader->GetOutput()->GetPointData()->SetScalars(colors);
     scalar_bar->VisibilityOff();
     qvtkWidget->GetRenderWindow()->Render();
@@ -462,12 +481,6 @@ void MainWindow::createActions()
     // Open scalars file corresponding to MNI-object
     openPerPointScalarsFileAction = new QAction(tr("Open &scalars file"), this);
     connect(openPerPointScalarsFileAction, SIGNAL(triggered()), this, SLOT(openPerPointScalarsFile()));
-
-    openPerPointRgbFileAction = new QAction(tr("Open per vertex RGB file"), this);
-    connect(openPerPointRgbFileAction, SIGNAL(triggered()), this, SLOT(openPerPointRgbFile()));
-
-    savePerPointRgbFileAction = new QAction(tr("Save per vertex RGB file"), this);
-    connect(savePerPointRgbFileAction, SIGNAL(triggered()), this, SLOT(savePerPointRgbFile()));
 }
 
 void MainWindow::createMenu()
@@ -476,8 +489,6 @@ void MainWindow::createMenu()
     QMenu *file = menubar->addMenu("&File");
     file->addAction(openMeshFileAction);
     file->addAction(openPerPointScalarsFileAction);
-    file->addAction(savePerPointRgbFileAction);
-    file->addAction(openPerPointRgbFileAction);
 
     QMenu *view = menubar->addMenu("&View");
     view->addAction(lookupTableSelectionDockWidget->toggleViewAction());

@@ -74,7 +74,6 @@ void LookupTableSelectionWidget::processButtonGroupButtonClicked(int /*id*/)
 
     if(perVertexColors.contains(lookupTablesButtonGroup->checkedId()))
     {
-        qDebug() << "emit currentPerVertexColorsChanged(perVertexColors[lookupTablesButtonGroup->checkedId()]);";
         emit currentPerVertexColorsChanged(perVertexColors[lookupTablesButtonGroup->checkedId()]);
     }
 }

@@ -92,8 +92,6 @@ private:
 
     QAction *openMeshFileAction;
     QAction *openPerPointScalarsFileAction;
-    QAction *openPerPointRgbFileAction;
-    QAction *savePerPointRgbFileAction;
     
     QDockWidget *lookupTableSelectionDockWidget;
     LookupTableSelectionWidget *lookupTableSelectionWidget;
@@ -131,14 +129,8 @@ private:
 
     // Vtk objects related to marking surface
 
-    //vtkSmartPointer<vtkConeSource> coneSource;
-    //vtkSmartPointer<vtkDataSetMapper> coneMapper;
-    //vtkSmartPointer<vtkActor> redCone;
-    //vtkSmartPointer<vtkActor> greenCone;
     vtkSmartPointer<vtkVolumePicker> volumePicker;
     vtkSmartPointer<vtkPointPicker> pointPicker;
-
-    //vtkSmartPointer<vtkPoints> pinsPoints;
 
     vtkSmartPointer<vtkWindowToImageFilter> windowToImageFilter;
     vtkSmartPointer<vtkFFMPEGWriter> ffmpegWriter;
