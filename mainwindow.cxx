@@ -453,8 +453,6 @@ void MainWindow::updateDirectRgbColors(vtkSmartPointer<vtkUnsignedCharArray> col
     int numberOfPointTuples = reader->GetOutput()->GetPointData()->GetNumberOfTuples();
     int numberOfRgbTuplesToAdd = numberOfPointTuples - colors->GetNumberOfTuples();
 
-    qDebug() << "numberOfRgbTuplesToAdd:" << numberOfRgbTuplesToAdd;
-
     for(int i = 0; i < numberOfRgbTuplesToAdd; ++i)
     {
         unsigned char value[3];
