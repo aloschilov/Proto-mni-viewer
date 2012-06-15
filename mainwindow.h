@@ -43,7 +43,12 @@ public:
     MainWindow(QWidget *parent = 0);
     ~MainWindow();
 
+protected:
+
+    void showEvent ( QShowEvent * event );
+
 private slots:
+
     void openMeshFile();
     void openPerPointScalarsFile();
 
@@ -82,10 +87,19 @@ private slots:
     void processWritingToAviInitiated();
     void processWritingToAviCompleted();
     void processWritingAviFilenameChanged(QString filename);
+
+    void processAnimationModeStateEntered();
+    void processAnimationModeStateExited();
+
+    void processCameraModeStateEntered();
+    void processCameraModeStateExited();
+
 private:
     void createActions();
     void createMenu();
+    void createToolbar();
     void initializeVtk();
+    void initializeStateMachine();
 
     void disableLighting();
     void enableLighting();
@@ -134,6 +148,13 @@ private:
 
     vtkSmartPointer<vtkWindowToImageFilter> windowToImageFilter;
     vtkSmartPointer<vtkFFMPEGWriter> ffmpegWriter;
+
+    QStateMachine machine;
+    QState animationModeState;
+    QState cameraModeState;
+
+    QAction *activateCameraModeAction;
+    QAction *activateObjectAnimationModeAction;
 };
 
 #endif // MAINWINDOW_H

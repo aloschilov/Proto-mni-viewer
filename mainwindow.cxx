@@ -23,6 +23,7 @@
 #include <vtkOrientedGlyphContourRepresentation.h>
 #include <vtkPolyDataCollection.h>
 #include <vtkInteractorStyleTrackballActor.h>
+#include <vtkInteractorStyleTrackballCamera.h>
 
 #include <vtkPolyDataReader.h>
 
@@ -109,7 +110,9 @@ MainWindow::MainWindow(QWidget *parent)
 
     createActions();
     createMenu();
+    createToolbar();
     initializeVtk();
+    initializeStateMachine();
 
     connect(lookupTableSelectionWidget, SIGNAL(currentLookupTableChanged(vtkSmartPointer<vtkLookupTable>)),
             this, SLOT(updateLookupTable(vtkSmartPointer<vtkLookupTable>)));
@@ -270,15 +273,35 @@ void MainWindow::initializeVtk()
                              this,
                              SLOT(processLeftButtonPressEvent(vtkObject*,ulong,void*,void*,vtkCommand*)));
 
-    vtkSmartPointer<vtkInteractorStyleTrackballActor> style =
-      vtkSmartPointer<vtkInteractorStyleTrackballActor>::New();
 
-    qvtkWidget->GetInteractor()->SetInteractorStyle(style);
+}
+
+void MainWindow::initializeStateMachine()
+{
+    machine.addState(&animationModeState);
+    machine.addState(&cameraModeState);
+
+    cameraModeState.addTransition(activateObjectAnimationModeAction, SIGNAL(triggered()), &animationModeState);
+    animationModeState.addTransition(activateCameraModeAction, SIGNAL(triggered()), &cameraModeState);
+
+    machine.setInitialState(&cameraModeState);
+
+    connect(&cameraModeState, SIGNAL(entered()), this, SLOT(processCameraModeStateEntered()));
+    connect(&cameraModeState, SIGNAL(exited()), this, SLOT(processCameraModeStateExited()));
+
+    connect(&animationModeState, SIGNAL(entered()), this, SLOT(processAnimationModeStateEntered()));
+    connect(&animationModeState, SIGNAL(exited()), this, SLOT(processAnimationModeStateExited()));
 }
 
 MainWindow::~MainWindow()
 {
 
+}
+
+void MainWindow::showEvent ( QShowEvent * event )
+{
+    Q_UNUSED(event)
+    machine.start();
 }
 
 void MainWindow::openMeshFile()
@@ -479,6 +502,16 @@ void MainWindow::createActions()
     // Open scalars file corresponding to MNI-object
     openPerPointScalarsFileAction = new QAction(tr("Open &scalars file"), this);
     connect(openPerPointScalarsFileAction, SIGNAL(triggered()), this, SLOT(openPerPointScalarsFile()));
+
+    // Camera mode
+    activateCameraModeAction = new QAction(tr("Camera mode"), this);
+    activateCameraModeAction->setIcon(QIcon(":/images/eye_point.svg"));
+    activateCameraModeAction->setCheckable(true);
+
+    // Animation mode
+    activateObjectAnimationModeAction = new QAction(tr("Object animation mode"), this);
+    activateObjectAnimationModeAction->setIcon(QIcon(":/images/camera.svg"));
+    activateObjectAnimationModeAction->setCheckable(true);
 }
 
 void MainWindow::createMenu()
@@ -490,6 +523,13 @@ void MainWindow::createMenu()
 
     QMenu *view = menubar->addMenu("&View");
     view->addAction(lookupTableSelectionDockWidget->toggleViewAction());
+}
+
+void MainWindow::createToolbar()
+{
+    QToolBar *modesToolBar = addToolBar(tr("Modes"));
+    modesToolBar->addAction(activateCameraModeAction);
+    modesToolBar->addAction(activateObjectAnimationModeAction);
 }
 
 void MainWindow::setFlatShadingModel()
@@ -829,4 +869,51 @@ void MainWindow::processWritingAviFilenameChanged(QString filename)
 {
     qDebug() << "void MainWindow::processWritingAviFilenameChanged(QString filename)";
     ffmpegWriter->SetFileName(filename.toStdString().c_str());
+}
+
+void MainWindow::processAnimationModeStateEntered()
+{
+    qDebug() << "processAnimationModeStateEntered()";
+
+    vtkSmartPointer<vtkInteractorStyleTrackballActor> style =
+      vtkSmartPointer<vtkInteractorStyleTrackballActor>::New();
+
+    qvtkWidget->GetInteractor()->SetInteractorStyle(style);
+    lightingPropertiesDockWidget->setEnabled(false);
+    animationManagementDockWidget->setEnabled(true);
+
+
+    activateObjectAnimationModeAction->setChecked(true);
+    activateObjectAnimationModeAction->setEnabled(false);
+
+    lightingPropertiesWidget->lightingWidgetVisibilityCheckbox->setChecked(false);
+}
+
+void MainWindow::processAnimationModeStateExited()
+{
+    qDebug() << "processAnimationModeStateExited()";
+
+    activateObjectAnimationModeAction->setChecked(false);
+    activateObjectAnimationModeAction->setEnabled(true);
+}
+
+void MainWindow::processCameraModeStateEntered()
+{
+    qDebug() << "processCameraModeStateEntered()";
+
+    vtkSmartPointer<vtkInteractorStyleTrackballCamera> style =
+      vtkSmartPointer<vtkInteractorStyleTrackballCamera>::New();
+
+    qvtkWidget->GetInteractor()->SetInteractorStyle(style);
+    lightingPropertiesDockWidget->setEnabled(true);
+    animationManagementDockWidget->setEnabled(false);
+    activateCameraModeAction->setChecked(true);
+    activateCameraModeAction->setEnabled(false);
+}
+
+void MainWindow::processCameraModeStateExited()
+{
+    qDebug() << "processCameraModeStateExited()";
+    activateCameraModeAction->setChecked(false);
+    activateCameraModeAction->setEnabled(true);
 }
