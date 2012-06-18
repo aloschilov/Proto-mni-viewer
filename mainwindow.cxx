@@ -63,6 +63,9 @@ double string_to_double( const std::string& s ) {
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
 {
+    leftMouseButtonIsPressed = false;
+    isInPaintMode = false;
+
     setWindowTitle(tr("MNI object viewer"));
 
     qvtkWidget = new QVTKWidget();
@@ -199,37 +202,30 @@ void MainWindow::initializeVtk()
     light = ren->MakeLight();
     ren->RemoveAllLights();
 
-    //    coneSource = vtkSmartPointer<vtkConeSource>::New();
-    //    coneSource->CappingOn();
-    //    coneSource->SetHeight(12);
-    //    coneSource->SetRadius(5);
-    //    coneSource->SetResolution(31);
-    //    coneSource->SetCenter(6,0,0);
-    //    coneSource->SetDirection(-1,0,0);
+    coneSource = vtkSmartPointer<vtkConeSource>::New();
+    coneSource->CappingOn();
+    coneSource->SetHeight(12);
+    coneSource->SetRadius(5);
+    coneSource->SetResolution(31);
+    coneSource->SetCenter(6,0,0);
+    coneSource->SetDirection(-1,0,0);
 
-    //    coneMapper = vtkSmartPointer<vtkDataSetMapper>::New();
-    //    coneMapper->SetInputConnection(coneSource->GetOutputPort());
+    coneMapper = vtkSmartPointer<vtkDataSetMapper>::New();
+    coneMapper->SetInputConnection(coneSource->GetOutputPort());
 
-    //    redCone = vtkSmartPointer<vtkActor>::New();
-    //    redCone->PickableOff();
-    //    redCone->SetMapper(coneMapper);
-    //    redCone->GetProperty()->SetColor(1,0,0);
-
-    //    greenCone = vtkSmartPointer<vtkActor>::New();
-    //    greenCone->PickableOff();
-    //    greenCone->SetMapper(coneMapper);
-    //    greenCone->GetProperty()->SetColor(0,1,0);
+    pencilActor = vtkSmartPointer<vtkActor>::New();
+    pencilActor->PickableOff();
+    pencilActor->SetMapper(coneMapper);
+    pencilActor->GetProperty()->SetColor(0,0,0);
     
-    //    ren->AddViewProp(redCone);
-    //    ren->AddViewProp(greenCone);
+    ren->AddViewProp(pencilActor);
 
     volumePicker = vtkSmartPointer<vtkVolumePicker>::New();
     volumePicker->SetTolerance(1e-6);
 
     pointPicker = vtkSmartPointer<vtkPointPicker>::New();
+    pencilActor->SetVisibility(false);
 
-    //    redCone->SetVisibility(false);
-    //    greenCone->SetVisibility(false);
     contourWidget =
             vtkSmartPointer<vtkContourWidget>::New();
     vtkOrientedGlyphContourRepresentation *rep =
@@ -268,21 +264,30 @@ void MainWindow::initializeVtk()
                          vtkCommand::MouseMoveEvent,
                          this,
                          SLOT(processMouseMoveEvent(vtkObject*, unsigned long, void*, void*, vtkCommand*)) );
-        Connections->Connect(qvtkWidget->GetInteractor(),
-                             vtkCommand::LeftButtonPressEvent,
-                             this,
-                             SLOT(processLeftButtonPressEvent(vtkObject*,ulong,void*,void*,vtkCommand*)));
-
-
+    Connections->Connect(qvtkWidget->GetInteractor(),
+                         vtkCommand::LeftButtonPressEvent,
+                         this,
+                         SLOT(processLeftButtonPressEvent(vtkObject*,ulong,void*,void*,vtkCommand*)));
+    Connections->Connect(qvtkWidget->GetInteractor(),
+                         vtkCommand::LeftButtonReleaseEvent,
+                         this,
+                         SLOT(processLeftButtonReleaseEvent(vtkObject*,ulong,void*,void*,vtkCommand*)));
 }
 
 void MainWindow::initializeStateMachine()
 {
     machine.addState(&animationModeState);
     machine.addState(&cameraModeState);
+    machine.addState(&paintModeState);
 
     cameraModeState.addTransition(activateObjectAnimationModeAction, SIGNAL(triggered()), &animationModeState);
+    cameraModeState.addTransition(activatePaintModeAction, SIGNAL(triggered()), &paintModeState);
+
     animationModeState.addTransition(activateCameraModeAction, SIGNAL(triggered()), &cameraModeState);
+    animationModeState.addTransition(activatePaintModeAction, SIGNAL(triggered()), &paintModeState);
+
+    paintModeState.addTransition(activateCameraModeAction, SIGNAL(triggered()), &cameraModeState);
+    paintModeState.addTransition(activateObjectAnimationModeAction, SIGNAL(triggered()), &animationModeState);
 
     machine.setInitialState(&cameraModeState);
 
@@ -291,6 +296,9 @@ void MainWindow::initializeStateMachine()
 
     connect(&animationModeState, SIGNAL(entered()), this, SLOT(processAnimationModeStateEntered()));
     connect(&animationModeState, SIGNAL(exited()), this, SLOT(processAnimationModeStateExited()));
+
+    connect(&paintModeState, SIGNAL(entered()), this, SLOT(processPaintModeStateEntered()));
+    connect(&paintModeState, SIGNAL(exited()), this, SLOT(processPaintModeStateExited()));
 }
 
 MainWindow::~MainWindow()
@@ -360,7 +368,7 @@ void MainWindow::openMeshFile()
 
         //interpolator->SetImageData();
 
-//        redCone->SetVisibility(true);
+//        pencilActor->SetVisibility(true);
 //        greenCone->SetVisibility(true);*/
     }
     else
@@ -407,9 +415,9 @@ void MainWindow::openPerPointScalarsFile()
 
 void MainWindow::openPerPointRgbFile()
 {
-//    mapper->SetLookupTable(0);
-//    mapper->SetColorModeToDefault();
-//    reader->GetOutput()->GetPointData()->SetScalars(colors);
+    //    mapper->SetLookupTable(0);
+    //    mapper->SetColorModeToDefault();
+    //    reader->GetOutput()->GetPointData()->SetScalars(colors);
 
 }
 
@@ -461,9 +469,10 @@ void MainWindow::updateLookupTable(vtkSmartPointer<vtkLookupTable> lookupTable)
     mapper->SetColorModeToMapScalars();
     scalar_bar->VisibilityOn();
     scalar_bar->SetLookupTable(lookupTable);
-    qvtkWidget->GetRenderWindow()->Render();
     reader->GetOutput()->GetPointData()->SetScalars(scalars);
     mapper->SetScalarRange(min, max);
+
+    qvtkWidget->GetRenderWindow()->Render();
 }
 
 void MainWindow::updateDirectRgbColors(vtkSmartPointer<vtkUnsignedCharArray> colors)
@@ -489,6 +498,7 @@ void MainWindow::updateDirectRgbColors(vtkSmartPointer<vtkUnsignedCharArray> col
 
     reader->GetOutput()->GetPointData()->SetScalars(colors);
     scalar_bar->VisibilityOff();
+
     qvtkWidget->GetRenderWindow()->Render();
 }
 
@@ -512,6 +522,18 @@ void MainWindow::createActions()
     activateObjectAnimationModeAction = new QAction(tr("Object animation mode"), this);
     activateObjectAnimationModeAction->setIcon(QIcon(":/images/camera.svg"));
     activateObjectAnimationModeAction->setCheckable(true);
+
+    // Paint mode
+    activatePaintModeAction = new QAction(tr("Paint mode"), this);
+    activatePaintModeAction->setIcon(QIcon(":/images/pencil.svg"));
+    activatePaintModeAction->setCheckable(true);
+
+    // Create color selection button
+    selectPencilColorToolButton = new QToolButton(this);
+    selectPencilColorToolButton->setIcon(getIconFilledWithColor(QColor(Qt::black)));
+
+    connect(selectPencilColorToolButton, SIGNAL(clicked()),
+            this, SLOT(processSelectColorForPencil()));
 }
 
 void MainWindow::createMenu()
@@ -530,6 +552,8 @@ void MainWindow::createToolbar()
     QToolBar *modesToolBar = addToolBar(tr("Modes"));
     modesToolBar->addAction(activateCameraModeAction);
     modesToolBar->addAction(activateObjectAnimationModeAction);
+    modesToolBar->addAction(activatePaintModeAction);
+    modesToolBar->addWidget(selectPencilColorToolButton);
 }
 
 void MainWindow::setFlatShadingModel()
@@ -570,12 +594,9 @@ void MainWindow::processMouseMoveEvent(vtkObject *caller, unsigned long, void*, 
     pointPicker->Pick(pos[0], pos[1], 0, ren);
     vtkIdType pointId = pointPicker->GetPointId();
     //picker->GetCellId()
-    //picker->GetPickNormal(n);
-    //redCone->SetPosition(p);
-    //pointCone(redCone, n[0], n[1], n[2]);
-    //greenCone->SetPosition(p);
-    //pointCone(greenCone, -n[0], -n[1], -n[2]);
-    iren->Render();
+    volumePicker->GetPickNormal(n);
+    pencilActor->SetPosition(p);
+    pointCone(pencilActor, n[0], n[1], n[2]);
 
     if(pointId == -1)
     {
@@ -597,11 +618,34 @@ void MainWindow::processMouseMoveEvent(vtkObject *caller, unsigned long, void*, 
         {
             statusBar()->showMessage(tr("Current position is (%1, %2, %3)").arg(p[0]).arg(p[1]).arg(p[2]));
         }
+
+        if(isInPaintMode)
+        {
+            vtkUnsignedCharArray* dataArray;
+            dataArray = vtkUnsignedCharArray::SafeDownCast(reader->GetOutput()->GetPointData()->GetScalars());
+
+            if(dataArray != 0 && leftMouseButtonIsPressed)
+            {
+                qDebug() << "dataArray != 0";
+                unsigned char tuple[3];
+                tuple[0] = pencilColor.red();
+                tuple[1] = pencilColor.green();
+                tuple[2] = pencilColor.blue();
+                dataArray->SetTupleValue(pointId, tuple);
+                reader->GetOutput()->GetPointData()->SetScalars(0);
+                reader->GetOutput()->GetPointData()->SetScalars(dataArray);
+            }
+        }
     }
+
+    qvtkWidget->GetRenderWindow()->Render();
 }
 
 void MainWindow::processLeftButtonPressEvent(vtkObject *caller, unsigned long, void*, void*, vtkCommand*)
 {
+    qDebug() << "processLeftButtonPressEvent(vtkObject *caller, unsigned long, void*, void*, vtkCommand*)";
+    leftMouseButtonIsPressed = true;
+
     vtkRenderWindowInteractor *iren = reinterpret_cast<vtkRenderWindowInteractor*>(caller);
 
     int pos[2];
@@ -626,6 +670,12 @@ void MainWindow::processLeftButtonPressEvent(vtkObject *caller, unsigned long, v
                     " (" << color[0] << " " << color[1] << " " << color[2] << ") "  << endl;
         }
     }
+}
+
+void MainWindow::processLeftButtonReleaseEvent(vtkObject *caller, unsigned long, void*, void*, vtkCommand*)
+{
+    qDebug() << "processLeftButtonReleaseEvent(vtkObject *caller, unsigned long, void*, void*, vtkCommand*)";
+    leftMouseButtonIsPressed = false;
 }
 
 void MainWindow::pointCone(vtkActor* actorToRotate, double nx, double ny, double nz)
@@ -661,6 +711,13 @@ void MainWindow::disableLighting()
 {
     ren->RemoveAllLights();
     qvtkWidget->GetRenderWindow()->Render();
+}
+
+QIcon MainWindow::getIconFilledWithColor(QColor color)
+{
+    QPixmap pixmap(24, 24);
+    pixmap.fill(color);
+    return QIcon(pixmap);
 }
 
 void MainWindow::processAmbientChanged(double value)
@@ -831,16 +888,16 @@ void MainWindow::processCurrentTimeChanged()
 void MainWindow::processCurrentWritingFrameChanged()
 {
     processCurrentTimeChanged();
-//    qDebug() << "windowToImageFilter->Update();";
+    //    qDebug() << "windowToImageFilter->Update();";
     windowToImageFilter->Modified();
-//    qDebug() << "ffmpegWriter->Write();";
+    //    qDebug() << "ffmpegWriter->Write();";
     ffmpegWriter->Write();
 
-//    vtkSmartPointer<vtkPNGWriter> writer =
-//        vtkSmartPointer<vtkPNGWriter>::New();
-//    writer->SetFileName("screenshot.png");
-//    writer->SetInputConnection(windowToImageFilter->GetOutputPort());
-//    writer->Write();
+    //    vtkSmartPointer<vtkPNGWriter> writer =
+    //        vtkSmartPointer<vtkPNGWriter>::New();
+    //    writer->SetFileName("screenshot.png");
+    //    writer->SetInputConnection(windowToImageFilter->GetOutputPort());
+    //    writer->Write();
     animationManagementWidget->processFrameIsWritten();
 }
 
@@ -849,8 +906,8 @@ void MainWindow::processWritingToAviInitiated()
     qDebug() << "void MainWindow::processWritingToAviInitiated()";
     ffmpegWriter->SetQuality(2);
     ffmpegWriter->SetRate(24);
-//    ffmpegWriter->SetBitRate(100000);
-//    ffmpegWriter->SetBitRateTolerance(100000);
+    //    ffmpegWriter->SetBitRate(100000);
+    //    ffmpegWriter->SetBitRateTolerance(100000);
     ffmpegWriter->Start();
 }
 
@@ -876,7 +933,7 @@ void MainWindow::processAnimationModeStateEntered()
     qDebug() << "processAnimationModeStateEntered()";
 
     vtkSmartPointer<vtkInteractorStyleTrackballActor> style =
-      vtkSmartPointer<vtkInteractorStyleTrackballActor>::New();
+            vtkSmartPointer<vtkInteractorStyleTrackballActor>::New();
 
     qvtkWidget->GetInteractor()->SetInteractorStyle(style);
     lightingPropertiesDockWidget->setEnabled(false);
@@ -902,7 +959,7 @@ void MainWindow::processCameraModeStateEntered()
     qDebug() << "processCameraModeStateEntered()";
 
     vtkSmartPointer<vtkInteractorStyleTrackballCamera> style =
-      vtkSmartPointer<vtkInteractorStyleTrackballCamera>::New();
+            vtkSmartPointer<vtkInteractorStyleTrackballCamera>::New();
 
     qvtkWidget->GetInteractor()->SetInteractorStyle(style);
     lightingPropertiesDockWidget->setEnabled(true);
@@ -916,4 +973,49 @@ void MainWindow::processCameraModeStateExited()
     qDebug() << "processCameraModeStateExited()";
     activateCameraModeAction->setChecked(false);
     activateCameraModeAction->setEnabled(true);
+}
+
+void MainWindow::processPaintModeStateEntered()
+{
+    qDebug() << "processPaintModeStateEntered()";
+
+    vtkSmartPointer<vtkInteractorStyle> style =
+            vtkSmartPointer<vtkInteractorStyle>::New();
+
+    qvtkWidget->GetInteractor()->SetInteractorStyle(style);
+    lightingPropertiesDockWidget->setEnabled(false);
+    animationManagementDockWidget->setEnabled(false);
+    activatePaintModeAction->setChecked(true);
+    activatePaintModeAction->setEnabled(false);
+
+    isInPaintMode = true;
+
+    pencilActor->SetVisibility(true);
+}
+
+void MainWindow::processPaintModeStateExited()
+{
+    qDebug() << "processPaintModeStateExited()";
+
+    activatePaintModeAction->setChecked(false);
+    activatePaintModeAction->setEnabled(true);
+
+    isInPaintMode = false;
+
+    pencilActor->SetVisibility(false);
+}
+
+
+void MainWindow::processSelectColorForPencil()
+{
+    QColor color;
+    color = QColorDialog::getColor(Qt::black, this);
+
+    if(color.isValid())
+    {
+        selectPencilColorToolButton->setIcon(getIconFilledWithColor(color));
+    }
+
+    pencilActor->GetProperty()->SetColor(color.redF(), color.greenF(), color.blueF());
+    pencilColor = color;
 }

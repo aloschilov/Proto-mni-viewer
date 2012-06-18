@@ -65,6 +65,7 @@ private slots:
     void processSphereWidgetInteractionEvent(vtkObject*, unsigned long, void*, void*, vtkCommand*);
     void processMouseMoveEvent(vtkObject*, unsigned long, void*, void*, vtkCommand*);
     void processLeftButtonPressEvent(vtkObject*, unsigned long, void*, void*, vtkCommand*);
+    void processLeftButtonReleaseEvent(vtkObject*, unsigned long, void*, void*, vtkCommand*);
     void pointCone(vtkActor* actorToRotate, double nx, double ny, double nz);
 
     void processAmbientChanged(double value);
@@ -94,6 +95,11 @@ private slots:
     void processCameraModeStateEntered();
     void processCameraModeStateExited();
 
+    void processPaintModeStateEntered();
+    void processPaintModeStateExited();
+
+    void processSelectColorForPencil();
+
 private:
     void createActions();
     void createMenu();
@@ -103,6 +109,8 @@ private:
 
     void disableLighting();
     void enableLighting();
+
+    QIcon getIconFilledWithColor(QColor color);
 
     QAction *openMeshFileAction;
     QAction *openPerPointScalarsFileAction;
@@ -149,12 +157,24 @@ private:
     vtkSmartPointer<vtkWindowToImageFilter> windowToImageFilter;
     vtkSmartPointer<vtkFFMPEGWriter> ffmpegWriter;
 
+    vtkSmartPointer<vtkConeSource> coneSource;
+    vtkSmartPointer<vtkDataSetMapper> coneMapper;
+    vtkSmartPointer<vtkActor> pencilActor;
+    vtkSmartPointer<vtkActor> greenCone;
+
     QStateMachine machine;
     QState animationModeState;
     QState cameraModeState;
+    QState paintModeState;
 
     QAction *activateCameraModeAction;
     QAction *activateObjectAnimationModeAction;
+    QAction *activatePaintModeAction;
+    QToolButton *selectPencilColorToolButton;
+    QColor pencilColor;
+
+    bool leftMouseButtonIsPressed;
+    bool isInPaintMode;
 };
 
 #endif // MAINWINDOW_H

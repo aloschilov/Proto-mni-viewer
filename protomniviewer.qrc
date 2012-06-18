@@ -15,5 +15,6 @@
         <file>images/del.png</file>
         <file>images/camera.svg</file>
         <file>images/eye_point.svg</file>
+        <file>images/pencil.svg</file>
     </qresource>
 </RCC>
