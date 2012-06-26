@@ -20,9 +20,8 @@
 #include <vtkFFMPEGWriter.h>
 
 #include <vtkEventQtSlotConnect.h>
-#include <vtkPolygonalSurfaceContourLineInterpolator.h>
 #include "saveablepolygonalsurfacepointplacer.h"
-#include <vtkContourWidget.h>
+#include <vtkTransform.h>
 
 
 
@@ -74,10 +73,10 @@ private slots:
     void processOpacityChanged(double value);
     void processLightingStateChanged(int state);
     void processLightingWidgetStateChanged(int state);
-    void processSurfaceSelectorStateChanged(int state);
 
     void openSelection();
     void saveSelection();
+    void clearSelection();
 
     void saveObjectStateAsFirstAnimationPoint();
     void saveObjectStateAsSecondAnimationPoint();
@@ -145,8 +144,6 @@ private:
     float min;
     float max;
 
-    vtkSmartPointer<vtkContourWidget> contourWidget;
-    vtkSmartPointer<vtkPolygonalSurfaceContourLineInterpolator> interpolator;
     vtkSmartPointer<SaveablePolygonalSurfacePointPlacer> pointPlacer;
 
     // Vtk objects related to marking surface
@@ -157,10 +154,10 @@ private:
     vtkSmartPointer<vtkWindowToImageFilter> windowToImageFilter;
     vtkSmartPointer<vtkFFMPEGWriter> ffmpegWriter;
 
-    vtkSmartPointer<vtkConeSource> coneSource;
-    vtkSmartPointer<vtkDataSetMapper> coneMapper;
-    vtkSmartPointer<vtkActor> pencilActor;
-    vtkSmartPointer<vtkActor> greenCone;
+//    vtkSmartPointer<vtkConeSource> coneSource;
+//    vtkSmartPointer<vtkDataSetMapper> coneMapper;
+//    vtkSmartPointer<vtkActor> pencilActor;
+//    vtkSmartPointer<vtkActor> greenCone;
 
     QStateMachine machine;
     QState animationModeState;
@@ -175,6 +172,12 @@ private:
 
     bool leftMouseButtonIsPressed;
     bool isInPaintMode;
+
+    vtkSmartPointer<vtkTransform> mniObjectTransfrom;
+    vtkSmartPointer<vtkTransform> markedAreaTransfrom;
+    vtkSmartPointer<vtkActor> markedAreaPinActor;
+
+    QMap<vtkIdType, vtkSmartPointer<vtkActor> > placedPoints;
 };
 
 #endif // MAINWINDOW_H

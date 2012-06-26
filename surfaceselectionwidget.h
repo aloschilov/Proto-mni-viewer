@@ -12,10 +12,9 @@ class SurfaceSelectionWidget : public QWidget
 public:
     explicit SurfaceSelectionWidget(QWidget *parent = 0);
 
-    QCheckBox *enableSurfaceSelectorCheckbox;
-
-    QPushButton *openContour;
-    QPushButton *saveContour;
+    QPushButton *openSelectedPoints;
+    QPushButton *saveSelectedPoints;
+    QPushButton *clearSelection;
 signals:
 
 public slots:

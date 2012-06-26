@@ -140,12 +140,14 @@ MainWindow::MainWindow(QWidget *parent)
             this, SLOT(processOpacityChanged(double)));
     connect(lightingPropertiesWidget->lightingWidgetVisibilityCheckbox, SIGNAL(stateChanged(int)),
             this, SLOT(processLightingWidgetStateChanged(int)));
-    connect(surfaceSelectionWidget->enableSurfaceSelectorCheckbox, SIGNAL(stateChanged(int)),
-            this, SLOT(processSurfaceSelectorStateChanged(int)));
-    connect(surfaceSelectionWidget->openContour, SIGNAL(clicked()),
+    //    connect(surfaceSelectionWidget->enableSurfaceSelectorCheckbox, SIGNAL(stateChanged(int)),
+    //            this, SLOT(processSurfaceSelectorStateChanged(int)));
+    connect(surfaceSelectionWidget->openSelectedPoints, SIGNAL(clicked()),
             this, SLOT(openSelection()));
-    connect(surfaceSelectionWidget->saveContour, SIGNAL(clicked()),
+    connect(surfaceSelectionWidget->saveSelectedPoints, SIGNAL(clicked()),
             this, SLOT(saveSelection()));
+    connect(surfaceSelectionWidget->clearSelection, SIGNAL(clicked()),
+            this, SLOT(clearSelection()));
 
     connect(animationManagementWidget->saveCurrentStateAsStartPointButton, SIGNAL(clicked()),
             this, SLOT(saveObjectStateAsFirstAnimationPoint()));
@@ -166,6 +168,8 @@ MainWindow::MainWindow(QWidget *parent)
 
 void MainWindow::initializeVtk()
 {
+    vtkObject::GlobalWarningDisplayOff();
+
     scalars = 0;
     min = 0.0;
     max = 1.0;
@@ -179,6 +183,11 @@ void MainWindow::initializeVtk()
 
     actor = vtkSmartPointer<vtkActor>::New();
     actor->SetMapper(mapper);
+    mniObjectTransfrom = vtkTransform::New();
+    actor->SetUserTransform(mniObjectTransfrom);
+
+    markedAreaTransfrom = vtkSmartPointer<vtkTransform>::New();
+    markedAreaTransfrom->SetInput(mniObjectTransfrom);
 
     scalar_bar = vtkSmartPointer<vtkScalarBarActor >::New();
     scalar_bar->SetLookupTable(lookupTableSelectionWidget->getCurrentLookupTable());
@@ -202,58 +211,57 @@ void MainWindow::initializeVtk()
     light = ren->MakeLight();
     ren->RemoveAllLights();
 
-    coneSource = vtkSmartPointer<vtkConeSource>::New();
-    coneSource->CappingOn();
-    coneSource->SetHeight(12);
-    coneSource->SetRadius(5);
-    coneSource->SetResolution(31);
-    coneSource->SetCenter(6,0,0);
-    coneSource->SetDirection(-1,0,0);
+    //    coneSource = vtkSmartPointer<vtkConeSource>::New();
+    //    coneSource->CappingOn();
+    //    coneSource->SetHeight(12);
+    //    coneSource->SetRadius(5);
+    //    coneSource->SetResolution(31);
+    //    coneSource->SetCenter(6,0,0);
+    //    coneSource->SetDirection(-1,0,0);
 
-    coneMapper = vtkSmartPointer<vtkDataSetMapper>::New();
-    coneMapper->SetInputConnection(coneSource->GetOutputPort());
+    //    coneMapper = vtkSmartPointer<vtkDataSetMapper>::New();
+    //    coneMapper->SetInputConnection(coneSource->GetOutputPort());
 
-    pencilActor = vtkSmartPointer<vtkActor>::New();
-    pencilActor->PickableOff();
-    pencilActor->SetMapper(coneMapper);
-    pencilActor->GetProperty()->SetColor(0,0,0);
+    //    pencilActor = vtkSmartPointer<vtkActor>::New();
+    //    pencilActor->PickableOff();
+    //    pencilActor->SetMapper(coneMapper);
+    //    pencilActor->GetProperty()->SetColor(0,0,0);
     
-    ren->AddViewProp(pencilActor);
+    //    ren->AddViewProp(pencilActor);
 
     volumePicker = vtkSmartPointer<vtkVolumePicker>::New();
     volumePicker->SetTolerance(1e-6);
 
     pointPicker = vtkSmartPointer<vtkPointPicker>::New();
-    pencilActor->SetVisibility(false);
-
-    contourWidget =
-            vtkSmartPointer<vtkContourWidget>::New();
-    vtkOrientedGlyphContourRepresentation *rep =
-            vtkOrientedGlyphContourRepresentation::SafeDownCast(
-                contourWidget->GetRepresentation());
-    rep->GetLinesProperty()->SetColor(1, 0.2, 0);
-    rep->GetLinesProperty()->SetLineWidth(3.0);
-    contourWidget->SetInteractor(qvtkWidget->GetInteractor());
-    contourWidget->KeyPressActivationOff();
-    contourWidget->EnabledOn();
-    contourWidget->ProcessEventsOff();
-
-    pointPlacer =
-            vtkSmartPointer<SaveablePolygonalSurfacePointPlacer>::New();
-    pointPlacer->AddProp(actor);
-    rep->SetPointPlacer(pointPlacer);
-
-    // Set a terrain interpolator. Interpolates points as they are placed,
-    // so that they lie on the terrain.
-
-    interpolator = vtkSmartPointer<vtkPolygonalSurfaceContourLineInterpolator>::New();
-    rep->SetLineInterpolator(interpolator);
 
     windowToImageFilter = vtkSmartPointer<vtkWindowToImageFilter>::New();
     windowToImageFilter->SetInput(ren->GetRenderWindow());
 
     ffmpegWriter = vtkSmartPointer<vtkFFMPEGWriter>::New();
     ffmpegWriter->SetInputConnection(windowToImageFilter->GetOutputPort());
+
+    //
+
+    // Create a sphere
+
+    vtkSmartPointer<vtkSphereSource> markedAreaPin =
+            vtkSmartPointer<vtkSphereSource>::New();
+    markedAreaPin->Update();
+
+    // Create a mapper and actor
+    vtkSmartPointer<vtkPolyDataMapper> markedAreaPinMapper =
+            vtkSmartPointer<vtkPolyDataMapper>::New();
+    markedAreaPinMapper->SetInputConnection(markedAreaPin->GetOutputPort());
+
+    markedAreaPinActor =
+            vtkSmartPointer<vtkActor>::New();
+    markedAreaPinActor->SetMapper(markedAreaPinMapper);
+    markedAreaPinActor->SetUserTransform(markedAreaTransfrom);
+    markedAreaPinActor->SetPickable(false);
+
+    markedAreaPinActor->SetVisibility(false);
+
+    ren->AddActor(markedAreaPinActor);
 
     Connections = vtkEventQtSlotConnect::New();
     Connections->Connect(sphereWidget,
@@ -334,47 +342,13 @@ void MainWindow::openMeshFile()
         sphereWidget->SetProp3D(actor);
         sphereWidget->PlaceWidget();
         light->SetFocalPoint(reader->GetOutput()->GetCenter());
-
-
-        /*
-
-        vtkSmartPointer<vtkPolyDataNormals> normals =
-          vtkSmartPointer<vtkPolyDataNormals>::New();
-
-        bool   distanceOffsetSpecified = false;
-        double distanceOffset = 20.0;
-
-        for (int i = 0; i < argc-1; i++)
-        {
-            distanceOffset = atof(argv[i+1]);
-            distanceOffsetSpecified = true;
-        }
-
-        if (distanceOffsetSpecified)
-        {
-            normals->SetInputConnection(warp->GetOutputPort());
-            normals->SetFeatureAngle(60);
-            normals->SplittingOff();
-
-            normals->ComputeCellNormalsOn();
-            normals->ComputePointNormalsOn();
-            normals->Update();
-        }
-
-        vtkPolyData *pd = normals->GetOutput();
-
-        pointPlacer->GetPolys()->AddItem( pd );
-        interpolator->GetPolys()->AddItem( pd );
-
-        //interpolator->SetImageData();
-
-//        pencilActor->SetVisibility(true);
-//        greenCone->SetVisibility(true);*/
     }
     else
     {
         statusBar()->showMessage(tr("The file seems not to contain MNI object."));
     }
+
+    qvtkWidget->GetRenderWindow()->Render();
 }
 
 void MainWindow::openPerPointScalarsFile()
@@ -590,13 +564,13 @@ void MainWindow::processMouseMoveEvent(vtkObject *caller, unsigned long, void*, 
     double p[3];
     double n[3];
     volumePicker->GetPickPosition(p);
+    vtkIdType pointId = volumePicker->GetPointId();
 
-    pointPicker->Pick(pos[0], pos[1], 0, ren);
-    vtkIdType pointId = pointPicker->GetPointId();
+    //pointPicker->Pick(pos[0], pos[1], 0, ren);
     //picker->GetCellId()
     volumePicker->GetPickNormal(n);
-    pencilActor->SetPosition(p);
-    pointCone(pencilActor, n[0], n[1], n[2]);
+    /*pencilActor->SetPosition(p);
+    pointCone(pencilActor, n[0], n[1], n[2]);*/
 
     if(pointId == -1)
     {
@@ -621,19 +595,36 @@ void MainWindow::processMouseMoveEvent(vtkObject *caller, unsigned long, void*, 
 
         if(isInPaintMode)
         {
-            vtkUnsignedCharArray* dataArray;
-            dataArray = vtkUnsignedCharArray::SafeDownCast(reader->GetOutput()->GetPointData()->GetScalars());
+            double v[3];
+            reader->GetOutput()->GetPoints()->GetPoint(pointId, v);
+            markedAreaPinActor->SetPosition(v);
 
-            if(dataArray != 0 && leftMouseButtonIsPressed)
+            if(leftMouseButtonIsPressed)
             {
-                qDebug() << "dataArray != 0";
-                unsigned char tuple[3];
-                tuple[0] = pencilColor.red();
-                tuple[1] = pencilColor.green();
-                tuple[2] = pencilColor.blue();
-                dataArray->SetTupleValue(pointId, tuple);
-                reader->GetOutput()->GetPointData()->SetScalars(0);
-                reader->GetOutput()->GetPointData()->SetScalars(dataArray);
+                vtkSmartPointer<vtkSphereSource> markedAreaPin =
+                        vtkSmartPointer<vtkSphereSource>::New();
+                markedAreaPin->Update();
+
+                vtkSmartPointer<vtkPolyDataMapper> markedAreaPinMapper =
+                        vtkSmartPointer<vtkPolyDataMapper>::New();
+                markedAreaPinMapper->SetInputConnection(markedAreaPin->GetOutputPort());
+
+                vtkSmartPointer<vtkActor> pointToPlaceActor =
+                        vtkSmartPointer<vtkActor>::New();
+                pointToPlaceActor->SetMapper(markedAreaPinMapper);
+                pointToPlaceActor->SetUserTransform(markedAreaTransfrom);
+                pointToPlaceActor->GetProperty()->SetColor(pencilColor.redF(), pencilColor.greenF(), pencilColor.blueF());
+                pointToPlaceActor->SetPosition(v);
+                pointToPlaceActor->SetPickable(false);
+
+                if(placedPoints.contains(pointId))
+                {
+                    ren->RemoveActor(placedPoints[pointId]);
+                }
+
+                placedPoints[pointId] = pointToPlaceActor;
+
+                ren->AddActor(pointToPlaceActor);
             }
         }
     }
@@ -655,8 +646,7 @@ void MainWindow::processLeftButtonPressEvent(vtkObject *caller, unsigned long, v
     double n[3];
     volumePicker->GetPickPosition(p);
 
-    pointPicker->Pick(pos[0], pos[1], 0, ren);
-    vtkIdType pointId = pointPicker->GetPointId();
+    vtkIdType pointId = volumePicker->GetPointId();
 
     if(pointId != -1)
     {
@@ -668,6 +658,41 @@ void MainWindow::processLeftButtonPressEvent(vtkObject *caller, unsigned long, v
             mapper->GetLookupTable()->GetColor(scalarValue, color);
             cout << "id " << pointId << " (" << p[0] << " " << p[1] << " " << p[2] << ") " << scalarValue <<
                     " (" << color[0] << " " << color[1] << " " << color[2] << ") "  << endl;
+        }
+
+        if(isInPaintMode)
+        {
+            double v[3];
+            reader->GetOutput()->GetPoints()->GetPoint(pointId, v);
+            markedAreaPinActor->SetPosition(v);
+
+            if(leftMouseButtonIsPressed)
+            {
+                vtkSmartPointer<vtkSphereSource> markedAreaPin =
+                        vtkSmartPointer<vtkSphereSource>::New();
+                markedAreaPin->Update();
+
+                vtkSmartPointer<vtkPolyDataMapper> markedAreaPinMapper =
+                        vtkSmartPointer<vtkPolyDataMapper>::New();
+                markedAreaPinMapper->SetInputConnection(markedAreaPin->GetOutputPort());
+
+                vtkSmartPointer<vtkActor> pointToPlaceActor =
+                        vtkSmartPointer<vtkActor>::New();
+                pointToPlaceActor->SetMapper(markedAreaPinMapper);
+                pointToPlaceActor->SetUserTransform(markedAreaTransfrom);
+                pointToPlaceActor->GetProperty()->SetColor(pencilColor.redF(), pencilColor.greenF(), pencilColor.blueF());
+                pointToPlaceActor->SetPosition(v);
+                pointToPlaceActor->SetPickable(false);
+
+                if(placedPoints.contains(pointId))
+                {
+                    ren->RemoveActor(placedPoints[pointId]);
+                }
+
+                placedPoints[pointId] = pointToPlaceActor;
+
+                ren->AddActor(pointToPlaceActor);
+            }
         }
     }
 }
@@ -755,83 +780,93 @@ void MainWindow::processLightingWidgetStateChanged(int state)
     }
 }
 
-void MainWindow::processSurfaceSelectorStateChanged(int state)
-{
-    if(state == Qt::Checked)
-    {
-        contourWidget->ProcessEventsOn();
-    } else if(state == Qt::Unchecked)
-    {
-        contourWidget->ProcessEventsOff();
-    }
-}
-
 void MainWindow::openSelection()
 {
     QString fileName = QFileDialog::getOpenFileName(this,
-                                                    tr("Open contour"),
+                                                    tr("Open selected points"),
                                                     "",
-                                                    tr("JSON contour(*.json)"));
+                                                    tr("Selected points(*.pts)"));
     if(fileName.isEmpty())
     {
         return;
     }
 
-    Json::Value root;   // will contains the root value after parsing.
-    Json::Reader jsonReader;
+    ifstream in(fileName.toStdString().c_str(), ios::in);
 
-    ifstream infile(fileName.toStdString().c_str());
-    bool parsingSuccessful = jsonReader.parse( infile, root );
-    if ( !parsingSuccessful )
-    {
-        // report to the user the failure and their locations in the document.
-        std::cout  << "Failed to parse configuration\n"
-                   << jsonReader.getFormattedErrorMessages();
-        return;
+    while(!in.eof()) {
+        vtkIdType pointId;
+        double r;
+        double g;
+        double b;
+        in >> pointId;
+        in >> r;
+        in >> g;
+        in >> b;
+
+        double v[3];
+        reader->GetOutput()->GetPoints()->GetPoint(pointId, v);
+
+        vtkSmartPointer<vtkSphereSource> markedAreaPin =
+                vtkSmartPointer<vtkSphereSource>::New();
+        markedAreaPin->Update();
+
+        vtkSmartPointer<vtkPolyDataMapper> markedAreaPinMapper =
+                vtkSmartPointer<vtkPolyDataMapper>::New();
+        markedAreaPinMapper->SetInputConnection(markedAreaPin->GetOutputPort());
+
+        vtkSmartPointer<vtkActor> pointToPlaceActor =
+                vtkSmartPointer<vtkActor>::New();
+        pointToPlaceActor->SetMapper(markedAreaPinMapper);
+        pointToPlaceActor->SetUserTransform(markedAreaTransfrom);
+        pointToPlaceActor->GetProperty()->SetColor(r, g, b);
+        pointToPlaceActor->SetPosition(v);
+        pointToPlaceActor->SetPickable(false);
+
+        if(!placedPoints.keys().contains(pointId))
+        {
+            placedPoints[pointId] = pointToPlaceActor;
+            ren->AddActor(pointToPlaceActor);
+        }
     }
 
-    pointPlacer->setStateInJsonFormat(root["placerInternals"], reader->GetOutput());
-
-    vtkSmartPointer<vtkPolyDataReader> nodePolyDataReader = vtkSmartPointer<vtkPolyDataReader>::New();
-    nodePolyDataReader->SetInputString(root["nodePolyData"].asString());
-    nodePolyDataReader->ReadFromInputStringOn();
-    nodePolyDataReader->Update();
-
-    contourWidget->Initialize(nodePolyDataReader->GetOutput());
+    qvtkWidget->GetRenderWindow()->Render();
 }
 
 void MainWindow::saveSelection()
 {
     QString fileName = QFileDialog::getSaveFileName(this,
-                                                    tr("Save contour"),
+                                                    tr("Save selected points"),
                                                     "",
-                                                    tr("JSON contour(*.json)"));
+                                                    tr("Selected points(*.pts)"));
 
     if(fileName.isEmpty())
     {
         return;
     }
 
-    vtkSmartPointer<vtkPolyData> nodePolyData = vtkSmartPointer<vtkPolyData>::New();
-    contourWidget->GetContourRepresentation()->GetNodePolyData(nodePolyData);
-
-    vtkSmartPointer<vtkPolyDataWriter> nodePolyDataWriter = vtkSmartPointer<vtkPolyDataWriter>::New();
-#if VTK_MAJOR_VERSION <= 5
-    nodePolyDataWriter->SetInput(nodePolyData);
-#else
-    nodePolyDataWriter->SetInputData(nodePolyData);
-#endif
-    nodePolyDataWriter->WriteToOutputStringOn();
-    nodePolyDataWriter->Write();
-
-    Json::Value contourInfo;
-    contourInfo["nodePolyData"] = nodePolyDataWriter->GetOutputStdString();
-    contourInfo["placerInternals"] = pointPlacer->getStateInJsonFormat();
-
     ofstream outfile;
     outfile.open (fileName.toStdString().c_str());
-    outfile << contourInfo;
+
+    QMapIterator<vtkIdType, vtkSmartPointer<vtkActor> > i(placedPoints);
+    while (i.hasNext()) {
+        i.next();
+        double rgb[3];
+        i.value()->GetProperty()->GetColor(rgb);
+        outfile << i.key() << " " << rgb[0] << " " << rgb[1] << " " << rgb[2] << endl;
+    }
+
     outfile.close();
+}
+
+void MainWindow::clearSelection()
+{
+    for (int i = 0; i < placedPoints.keys().size(); ++i) {
+        ren->RemoveActor(placedPoints[placedPoints.keys().at(i)]);
+    }
+
+    placedPoints.clear();
+
+    qvtkWidget->GetRenderWindow()->Render();
 }
 
 void MainWindow::saveObjectStateAsFirstAnimationPoint()
@@ -840,9 +875,9 @@ void MainWindow::saveObjectStateAsFirstAnimationPoint()
     double o[3];
     double scale[3];
 
-    actor->GetPosition(pos);
-    actor->GetOrientation(o);
-    actor->GetScale(scale);
+    mniObjectTransfrom->GetPosition(pos);
+    mniObjectTransfrom->GetOrientation(o);
+    mniObjectTransfrom->GetScale(scale);
     animationManagementWidget->saveCurrentObjectStateAsStartPoint(
                 pos[0],
                 pos[1],
@@ -859,9 +894,9 @@ void MainWindow::saveObjectStateAsSecondAnimationPoint()
     double o[3];
     double scale[3];
 
-    actor->GetPosition(pos);
-    actor->GetOrientation(o);
-    actor->GetScale(scale);
+    mniObjectTransfrom->GetPosition(pos);
+    mniObjectTransfrom->GetOrientation(o);
+    mniObjectTransfrom->GetScale(scale);
     animationManagementWidget->saveCurrentObjectStateAsEndPoint(
                 pos[0],
                 pos[1],
@@ -875,12 +910,17 @@ void MainWindow::saveObjectStateAsSecondAnimationPoint()
 
 void MainWindow::processCurrentTimeChanged()
 {
-    actor->SetPosition(animationManagementWidget->getCurrentX(),
-                       animationManagementWidget->getCurrentY(),
-                       animationManagementWidget->getCurrentZ());
-    actor->SetOrientation(animationManagementWidget->getCurrentRotX(),
-                          animationManagementWidget->getCurrentRotY(),
-                          animationManagementWidget->getCurrentRotZ());
+    double pos[3];
+    pos[0] = animationManagementWidget->getCurrentX();
+    pos[1] = animationManagementWidget->getCurrentY();
+    pos[2] = animationManagementWidget->getCurrentZ();
+    mniObjectTransfrom->Identity();
+    mniObjectTransfrom->Translate(pos);
+
+    mniObjectTransfrom->RotateX(animationManagementWidget->getCurrentRotX());
+    mniObjectTransfrom->RotateY(animationManagementWidget->getCurrentRotY());
+    mniObjectTransfrom->RotateZ(animationManagementWidget->getCurrentRotZ());
+
     ren->ResetCameraClippingRange();
     qvtkWidget->GetRenderWindow()->Render();
 }
@@ -888,16 +928,18 @@ void MainWindow::processCurrentTimeChanged()
 void MainWindow::processCurrentWritingFrameChanged()
 {
     processCurrentTimeChanged();
-    //    qDebug() << "windowToImageFilter->Update();";
+    qDebug() << "windowToImageFilter->Modified();";
     windowToImageFilter->Modified();
-    //    qDebug() << "ffmpegWriter->Write();";
+    qDebug() << "BEGIN ffmpegWriter->Write();";
     ffmpegWriter->Write();
+    qDebug() << "END ffmpegWriter->Write();";
 
     //    vtkSmartPointer<vtkPNGWriter> writer =
     //        vtkSmartPointer<vtkPNGWriter>::New();
     //    writer->SetFileName("screenshot.png");
     //    writer->SetInputConnection(windowToImageFilter->GetOutputPort());
     //    writer->Write();
+    qDebug() << "animationManagementWidget->processFrameIsWritten();";
     animationManagementWidget->processFrameIsWritten();
 }
 
@@ -990,7 +1032,7 @@ void MainWindow::processPaintModeStateEntered()
 
     isInPaintMode = true;
 
-    pencilActor->SetVisibility(true);
+    markedAreaPinActor->SetVisibility(true);
 }
 
 void MainWindow::processPaintModeStateExited()
@@ -1002,7 +1044,7 @@ void MainWindow::processPaintModeStateExited()
 
     isInPaintMode = false;
 
-    pencilActor->SetVisibility(false);
+    markedAreaPinActor->SetVisibility(false);
 }
 
 
@@ -1016,6 +1058,6 @@ void MainWindow::processSelectColorForPencil()
         selectPencilColorToolButton->setIcon(getIconFilledWithColor(color));
     }
 
-    pencilActor->GetProperty()->SetColor(color.redF(), color.greenF(), color.blueF());
     pencilColor = color;
+    markedAreaPinActor->GetProperty()->SetColor(pencilColor.redF(), pencilColor.greenF(), pencilColor.blueF());
 }

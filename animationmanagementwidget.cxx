@@ -364,11 +364,17 @@ void AnimationManagementWidget::processWritingFrame()
     {
         disconnect(writingLoopThread, SIGNAL(writeNextFrame()),
                 this, SLOT(processWritingFrame()));
+        qDebug() << "writingLoopThread->prepareForExit();";
         writingLoopThread->prepareForExit();
+        qDebug() << "writingLoopThread->allowNextSignal();";
         writingLoopThread->allowNextSignal();
+        qDebug() << "writingLoopThread->wait();";
         writingLoopThread->wait();
+        qDebug() << "writingLoopThread->terminate();";
         writingLoopThread->terminate();
+        qDebug() << "currentStateOfAnimation->setValue(0);";
         currentStateOfAnimation->setValue(0);
+        qDebug() << "emit writingToAviCompleted();";
         emit writingToAviCompleted();
         return;
     }

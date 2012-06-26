@@ -5,15 +5,14 @@
 SurfaceSelectionWidget::SurfaceSelectionWidget(QWidget *parent) :
     QWidget(parent)
 {
-    enableSurfaceSelectorCheckbox = new QCheckBox(tr("Enable &selector"));
-
-    openContour = new QPushButton(tr("Open selection"));
-    saveContour = new QPushButton(tr("Save selection"));
+    openSelectedPoints = new QPushButton(tr("Open selection"));
+    saveSelectedPoints = new QPushButton(tr("Save selection"));
+    clearSelection = new QPushButton(tr("Clear selection"));
 
     QVBoxLayout *mainLayout = new QVBoxLayout();
-    mainLayout->addWidget(enableSurfaceSelectorCheckbox);
-    mainLayout->addWidget(openContour);
-    mainLayout->addWidget(saveContour);
+    mainLayout->addWidget(openSelectedPoints);
+    mainLayout->addWidget(saveSelectedPoints);
+    mainLayout->addWidget(clearSelection);
     mainLayout->addStretch();
 
     setLayout(mainLayout);
