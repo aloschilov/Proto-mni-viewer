@@ -318,6 +318,146 @@ void MainWindow::showEvent ( QShowEvent * event )
 {
     Q_UNUSED(event)
     machine.start();
+
+    int num = qApp->argc() ;
+
+    // Parse --object-position option
+
+    mniObjectTransfrom->Identity();
+
+    for ( int i = 0; i < num; i++ ) {
+        QString s = qApp->argv()[i] ;
+        if ( s.startsWith( "--object-position" ) )
+        {
+            qDebug() << "parsed --object-position";
+
+            if(num - (i+1) < 3)
+            {
+                qDebug() << "Insufficient number of components specified for object position.";
+                return;
+            }
+
+            bool parsingResult;
+
+            ++i;
+            QString x = qApp->argv()[i];
+            double xDouble = x.toDouble(&parsingResult);
+
+            if(parsingResult == false)
+            {
+                qDebug() << "Wrong 1-st parameter is specified for object position.";
+                return;
+            }
+
+            ++i;
+            QString y = qApp->argv()[i];
+            double yDouble = y.toDouble(&parsingResult);
+
+            if(parsingResult == false)
+            {
+                qDebug() << "Wrong 2-nd parameter is specified for object position.";
+                return;
+            }
+
+            ++i;
+            QString z = qApp->argv()[i];
+            double zDouble = z.toDouble(&parsingResult);
+
+            if(parsingResult == false)
+            {
+                qDebug() << "Wrong 3-rd parameter is specified for object position.";
+                return;
+            }
+
+            double pos[3];
+            pos[0] = xDouble;
+            pos[1] = yDouble;
+            pos[2] = zDouble;
+
+            mniObjectTransfrom->Translate(pos);
+
+        }
+    }
+
+    // Parse --object-rotation option
+
+    for ( int i = 0; i < num; i++ )
+    {
+        QString s = qApp->argv()[i] ;
+        if ( s.startsWith( "--object-rotation" ) )
+        {
+            qDebug() << "parsed --object-rotation";
+
+            if(num - (i+1) < 3)
+            {
+                qDebug() << "Insufficient number of components specified for object rotation.";
+                return;
+            }
+
+            bool parsingResult;
+
+            ++i;
+            QString rotX = qApp->argv()[i];
+            double rotXDouble = rotX.toDouble(&parsingResult);
+
+            if(parsingResult == false)
+            {
+                qDebug() << "Wrong 1-st parameter is specified for object rotation.";
+                return;
+            }
+
+            ++i;
+            QString rotY = qApp->argv()[i];
+            double rotYDouble = rotY.toDouble(&parsingResult);
+
+            if(parsingResult == false)
+            {
+                qDebug() << "Wrong 2-nd parameter is specified for object rotation.";
+                return;
+            }
+
+            ++i;
+            QString rotZ = qApp->argv()[i];
+            double rotZDouble = rotZ.toDouble(&parsingResult);
+
+            if(parsingResult == false)
+            {
+                qDebug() << "Wrong 3-rd parameter is specified for object rotation.";
+                return;
+            }
+
+            double o[3];
+            o[0] = rotXDouble;
+            o[1] = rotYDouble;
+            o[2] = rotZDouble;
+
+            mniObjectTransfrom->RotateX(o[0]);
+            mniObjectTransfrom->RotateY(o[1]);
+            mniObjectTransfrom->RotateZ(o[2]);
+
+        }
+    }
+
+    for ( int i = 0; i < num; i++ )
+    {
+        QString s = qApp->argv()[i];
+        if ( s.startsWith( "--object-to-load" ) )
+        {
+            if(num - (i+1) >= 1)
+            {
+                ++i;
+                QString fileName = qApp->argv()[i];
+                if(QFile::exists(fileName))
+                {
+                    openMeshFileByName(fileName);
+                }
+                else
+                {
+                    qDebug() << "Wrong file specified";
+                }
+            }
+        }
+    }
 }
 
 void MainWindow::openMeshFile()
@@ -331,6 +471,11 @@ void MainWindow::openMeshFile()
         return;
     }
 
+    openMeshFileByName(fileName);
+}
+
+void MainWindow::openMeshFileByName(const QString &fileName)
+{
     if(reader->CanReadFile(fileName.toStdString().c_str()))
     {
         reader->SetFileName(fileName.toStdString().c_str());

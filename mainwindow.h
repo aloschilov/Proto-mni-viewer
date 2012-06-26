@@ -109,6 +109,8 @@ private:
     void disableLighting();
     void enableLighting();
 
+    void openMeshFileByName(const QString &filename);
+
     QIcon getIconFilledWithColor(QColor color);
 
     QAction *openMeshFileAction;
