@@ -18,6 +18,7 @@
 #include <vtkPointPicker.h>
 #include <vtkWindowToImageFilter.h>
 #include <vtkFFMPEGWriter.h>
+#include <vtkPNGWriter.h>
 
 #include <vtkEventQtSlotConnect.h>
 #include "saveablepolygonalsurfacepointplacer.h"
@@ -87,6 +88,9 @@ private slots:
     void processWritingToAviInitiated();
     void processWritingToAviCompleted();
     void processWritingAviFilenameChanged(QString filename);
+    void processWritingPngFilenameChanged(QString filename);
+
+    void processWritePng();
 
     void processAnimationModeStateEntered();
     void processAnimationModeStateExited();
@@ -155,6 +159,8 @@ private:
 
     vtkSmartPointer<vtkWindowToImageFilter> windowToImageFilter;
     vtkSmartPointer<vtkFFMPEGWriter> ffmpegWriter;
+
+    vtkSmartPointer<vtkPNGWriter> pngWriter;
 
 //    vtkSmartPointer<vtkConeSource> coneSource;
 //    vtkSmartPointer<vtkDataSetMapper> coneMapper;

@@ -93,11 +93,15 @@ signals:
     void writingToAviInitiated();
     void currentWritingFrameChanged();
     void writingToAviCompleted();
-    void currentFilenameChanged(QString filename);
+    void currentAviFilenameChanged(QString filename);
+    void currentPngFilenameChanged(QString filename);
+    void pngWritingRequested();
 public slots:
     void saveCurrentObjectStateAsStartPoint(double x, double y, double z, double scale, double rotX, double rotY, double rotZ);
     void saveCurrentObjectStateAsEndPoint(double x, double y, double z, double scale, double rotX, double rotY, double rotZ);
     void processFrameIsWritten();
+    void setAviFilename(QString fileName);
+    void setPngFilename(QString fileName);
 
 private slots:
     void updateStartValueFromControls();
@@ -110,7 +114,8 @@ private slots:
     void processTimeout();
     void processWritingFrame();
 
-    void processSpecifyFilename();
+    void processSpecifyAviFilename();
+    void processSpecifyPngFilename();
 
     void processFirstPointXDoubleSpinBoxValueChanged(double value);
     void processFirstPointYDoubleSpinBoxValueChanged(double value);
@@ -132,14 +137,21 @@ private slots:
 
     void processSecondPointScaleDoubleSpinBoxValueChanged(double value);
 
+    void processPngWrite();
+
 private:
 
     QLabel *currentStateOfAnimationLabel;
     QLineEdit *pathToSaveAviFileLineEdit;
 
+
     QPushButton *animationStart;
     QPushButton *writingStart;
-    QPushButton *specifyFilenameButton;
+    QPushButton *specifyAviFilenameButton;
+
+    QLineEdit *pathToSavePngFileLineEdit;
+    QPushButton *specifyPngFilenameButton;
+    QPushButton *pngWrite;
 
     QTimer *animationTimer;
     WritingLoopThread *writingLoopThread;

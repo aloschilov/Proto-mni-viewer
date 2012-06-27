@@ -143,17 +143,34 @@ AnimationManagementWidget::AnimationManagementWidget(QWidget *parent) :
 
     writingStart = new QPushButton(tr("Write"));
     writingStart->setEnabled(false);
-    specifyFilenameButton = new QPushButton(tr("Specify filename"));
+    specifyAviFilenameButton = new QPushButton(tr("Specify filename"));
     pathToSaveAviFileLineEdit = new QLineEdit();
     pathToSaveAviFileLineEdit->setReadOnly(true);
 
     QGridLayout *aviConfigurationLayout = new QGridLayout();
 
-    aviConfigurationLayout->addWidget(specifyFilenameButton, 0, 0);
+    aviConfigurationLayout->addWidget(specifyAviFilenameButton, 0, 0);
     aviConfigurationLayout->addWidget(pathToSaveAviFileLineEdit, 0, 1);
     aviConfigurationLayout->addWidget(writingStart, 1, 0);
 
+    // PNG START
+
+    pngWrite = new QPushButton(tr("Write frame"));
+    pngWrite->setEnabled(false);
+    specifyPngFilenameButton = new QPushButton(tr("Specify filename"));
+    pathToSavePngFileLineEdit = new QLineEdit();
+    pathToSavePngFileLineEdit->setReadOnly(true);
+
+    QGridLayout *pngConfigurationLayout = new QGridLayout();
+
+    pngConfigurationLayout->addWidget(specifyPngFilenameButton, 0, 0);
+    pngConfigurationLayout->addWidget(pathToSavePngFileLineEdit, 0, 1);
+    pngConfigurationLayout->addWidget(pngWrite);
+
+    // PNG END
+
     mainLayout->addLayout(aviConfigurationLayout);
+    mainLayout->addLayout(pngConfigurationLayout);
 
     mainLayout->addStretch();
     setLayout(mainLayout);
@@ -170,8 +187,11 @@ AnimationManagementWidget::AnimationManagementWidget(QWidget *parent) :
     connect(writingStart, SIGNAL(clicked()),
             this, SLOT(processWritingTrigger()));
 
-    connect(specifyFilenameButton, SIGNAL(clicked()),
-            this, SLOT(processSpecifyFilename()));
+    connect(specifyAviFilenameButton, SIGNAL(clicked()),
+            this, SLOT(processSpecifyAviFilename()));
+
+    connect(specifyPngFilenameButton, SIGNAL(clicked()),
+            this, SLOT(processSpecifyPngFilename()));
 
 
     connect(firstPointXDoubleSpinBox, SIGNAL(valueChanged(double)),
@@ -204,6 +224,9 @@ AnimationManagementWidget::AnimationManagementWidget(QWidget *parent) :
             this, SLOT(processSecondPointRotZDoubleSpinBoxValueChanged(double)));
     connect(secondPointRotZDoubleSpinBox, SIGNAL(valueChanged(double)),
             this, SLOT(processSecondPointScaleDoubleSpinBoxValueChanged(double)));
+
+    connect(pngWrite, SIGNAL(clicked()),
+            this, SLOT(processPngWrite()));
 
     writingLoopThread = new WritingLoopThread();
     writingLoopThread->setParent(this);
@@ -269,6 +292,22 @@ void AnimationManagementWidget::saveCurrentObjectStateAsEndPoint(double x, doubl
 void AnimationManagementWidget::processFrameIsWritten()
 {
     writingLoopThread->allowNextSignal();
+}
+
+void AnimationManagementWidget::setAviFilename(QString fileName)
+{
+    pathToSaveAviFileLineEdit->setText(fileName);
+    writingStart->setEnabled(true);
+
+    emit currentAviFilenameChanged(fileName);
+}
+
+void AnimationManagementWidget::setPngFilename(QString fileName)
+{
+    pathToSavePngFileLineEdit->setText(fileName);
+    pngWrite->setEnabled(true);
+
+    emit currentPngFilenameChanged(fileName);
 }
 
 void AnimationManagementWidget::updateStartValueFromControls()
@@ -382,7 +421,7 @@ void AnimationManagementWidget::processWritingFrame()
     emit currentWritingFrameChanged();
 }
 
-void AnimationManagementWidget::processSpecifyFilename()
+void AnimationManagementWidget::processSpecifyAviFilename()
 {
     QString fileName = QFileDialog::getSaveFileName(this,
                                                     tr("Specify animation file to write"),
@@ -397,7 +436,25 @@ void AnimationManagementWidget::processSpecifyFilename()
     pathToSaveAviFileLineEdit->setText(fileName);
     writingStart->setEnabled(true);
 
-    emit currentFilenameChanged(fileName);
+    emit currentAviFilenameChanged(fileName);
+}
+
+void AnimationManagementWidget::processSpecifyPngFilename()
+{
+    QString fileName = QFileDialog::getSaveFileName(this,
+                                                    tr("Specify image file to write"),
+                                                    "",
+                                                    tr("Portable network graphics(*.png)"));
+
+    if(fileName.isEmpty())
+    {
+        return;
+    }
+
+    pathToSavePngFileLineEdit->setText(fileName);
+    pngWrite->setEnabled(true);
+
+    emit currentPngFilenameChanged(fileName);
 }
 
 void AnimationManagementWidget::processFirstPointXDoubleSpinBoxValueChanged(double value)
@@ -468,4 +525,9 @@ void AnimationManagementWidget::processSecondPointRotZDoubleSpinBoxValueChanged(
 void AnimationManagementWidget::processSecondPointScaleDoubleSpinBoxValueChanged(double value)
 {
     updateEndValueFromControls();
+}
+
+void AnimationManagementWidget::processPngWrite()
+{
+    emit pngWritingRequested();
 }

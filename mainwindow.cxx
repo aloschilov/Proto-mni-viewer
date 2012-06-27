@@ -158,12 +158,16 @@ MainWindow::MainWindow(QWidget *parent)
 
     connect(animationManagementWidget, SIGNAL(writingToAviInitiated()),
             this, SLOT(processWritingToAviInitiated()), Qt::DirectConnection);
-    connect(animationManagementWidget, SIGNAL(currentFilenameChanged(QString)),
+    connect(animationManagementWidget, SIGNAL(currentAviFilenameChanged(QString)),
             this, SLOT(processWritingAviFilenameChanged(QString)));
     connect(animationManagementWidget, SIGNAL(currentWritingFrameChanged()),
             this, SLOT(processCurrentWritingFrameChanged()));
     connect(animationManagementWidget, SIGNAL(writingToAviCompleted()),
             this, SLOT(processWritingToAviCompleted()));
+    connect(animationManagementWidget, SIGNAL(currentPngFilenameChanged(QString)),
+            this, SLOT(processWritingPngFilenameChanged(QString)));
+    connect(animationManagementWidget, SIGNAL(pngWritingRequested()),
+            this, SLOT(processWritePng()));
 }
 
 void MainWindow::initializeVtk()
@@ -239,6 +243,9 @@ void MainWindow::initializeVtk()
 
     ffmpegWriter = vtkSmartPointer<vtkFFMPEGWriter>::New();
     ffmpegWriter->SetInputConnection(windowToImageFilter->GetOutputPort());
+
+    pngWriter = vtkSmartPointer<vtkPNGWriter>::New();
+    pngWriter->SetInputConnection(windowToImageFilter->GetOutputPort());
 
     //
 
@@ -321,63 +328,7 @@ void MainWindow::showEvent ( QShowEvent * event )
 
     int num = qApp->argc() ;
 
-    // Parse --object-position option
-
     mniObjectTransfrom->Identity();
-
-    for ( int i = 0; i < num; i++ ) {
-        QString s = qApp->argv()[i] ;
-        if ( s.startsWith( "--object-position" ) )
-        {
-            qDebug() << "parsed --object-position";
-
-            if(num - (i+1) < 3)
-            {
-                qDebug() << "Insufficient number of components specified for object position.";
-                return;
-            }
-
-            bool parsingResult;
-
-            ++i;
-            QString x = qApp->argv()[i];
-            double xDouble = x.toDouble(&parsingResult);
-
-            if(parsingResult == false)
-            {
-                qDebug() << "Wrong 1-st parameter is specified for object position.";
-                return;
-            }
-
-            ++i;
-            QString y = qApp->argv()[i];
-            double yDouble = y.toDouble(&parsingResult);
-
-            if(parsingResult == false)
-            {
-                qDebug() << "Wrong 2-nd parameter is specified for object position.";
-                return;
-            }
-
-            ++i;
-            QString z = qApp->argv()[i];
-            double zDouble = z.toDouble(&parsingResult);
-
-            if(parsingResult == false)
-            {
-                qDebug() << "Wrong 3-rd parameter is specified for object position.";
-                return;
-            }
-
-            double pos[3];
-            pos[0] = xDouble;
-            pos[1] = yDouble;
-            pos[2] = zDouble;
-
-            mniObjectTransfrom->Translate(pos);
-
-        }
-    }
 
     // Parse --object-rotation option
 
@@ -438,9 +389,68 @@ void MainWindow::showEvent ( QShowEvent * event )
         }
     }
 
+    // Parse --object-position option
+
+    for ( int i = 0; i < num; i++ ) {
+        QString s = qApp->argv()[i] ;
+        if ( s.startsWith( "--object-position" ) )
+        {
+            qDebug() << "parsed --object-position";
+
+            if(num - (i+1) < 3)
+            {
+                qDebug() << "Insufficient number of components specified for object position.";
+                return;
+            }
+
+            bool parsingResult;
+
+            ++i;
+            QString x = qApp->argv()[i];
+            double xDouble = x.toDouble(&parsingResult);
+
+            if(parsingResult == false)
+            {
+                qDebug() << "Wrong 1-st parameter is specified for object position.";
+                return;
+            }
+
+            ++i;
+            QString y = qApp->argv()[i];
+            double yDouble = y.toDouble(&parsingResult);
+
+            if(parsingResult == false)
+            {
+                qDebug() << "Wrong 2-nd parameter is specified for object position.";
+                return;
+            }
+
+            ++i;
+            QString z = qApp->argv()[i];
+            double zDouble = z.toDouble(&parsingResult);
+
+            if(parsingResult == false)
+            {
+                qDebug() << "Wrong 3-rd parameter is specified for object position.";
+                return;
+            }
+
+            double pos[3];
+            pos[0] = xDouble;
+            pos[1] = yDouble;
+            pos[2] = zDouble;
+
+            mniObjectTransfrom->Translate(pos);
+
+        }
+    }
+
+    // Parse --object-to-load option
+
     for ( int i = 0; i < num; i++ )
     {
         QString s = qApp->argv()[i];
+
         if ( s.startsWith( "--object-to-load" ) )
         {
             if(num - (i+1) >= 1)
@@ -450,11 +460,51 @@ void MainWindow::showEvent ( QShowEvent * event )
                 if(QFile::exists(fileName))
                 {
                     openMeshFileByName(fileName);
+                    qDebug() << "parsed --object-to-load" << fileName;
+                    break;
                 }
                 else
                 {
                     qDebug() << "Wrong file specified";
                 }
+            }
+        }
+    }
+
+    // Parse --animation-name option
+
+    for ( int i = 0; i < num; i++ )
+    {
+        QString s = qApp->argv()[i];
+
+        if ( s.startsWith( "--animation-name" ) )
+        {
+            if(num - (i+1) >= 1)
+            {
+                ++i;
+                QString fileName = qApp->argv()[i];
+                qDebug() << "parsed --animation-name: " << fileName;
+                animationManagementWidget->setAviFilename(fileName);
+            }
+        }
+    }
+
+    // Parse --screenshot-name option
+
+    for( int i = 0; i < num; ++i )
+    {
+
+        QString s = qApp->argv()[i];
+
+        if( s.startsWith( "--screenshot-name" ))
+        {
+            if(num - (i+1) >= 1)
+            {
+                ++i;
+                QString fileName = qApp->argv()[i];
+                animationManagementWidget->setPngFilename(fileName);
+                qDebug() << "parsed --screenshot-name " << fileName;
+                break;
             }
         }
     }
@@ -1113,6 +1163,19 @@ void MainWindow::processWritingAviFilenameChanged(QString filename)
 {
     qDebug() << "void MainWindow::processWritingAviFilenameChanged(QString filename)";
     ffmpegWriter->SetFileName(filename.toStdString().c_str());
+}
+
+void MainWindow::processWritingPngFilenameChanged(QString filename)
+{
+    qDebug() << "void MainWindow::processWritingPngFilenameChanged(QString filename)";
+    pngWriter->SetFileName(filename.toStdString().c_str());
+}
+
+void MainWindow::processWritePng()
+{
+    qDebug() << "void MainWindow::processWritePng()";
+    windowToImageFilter->Modified();
+    pngWriter->Write();
 }
 
 void MainWindow::processAnimationModeStateEntered()
