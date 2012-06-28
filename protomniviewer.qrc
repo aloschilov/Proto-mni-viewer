@@ -16,5 +16,6 @@
         <file>images/camera.svg</file>
         <file>images/eye_point.svg</file>
         <file>images/pencil.svg</file>
+        <file>images/background_color.svg</file>
     </qresource>
 </RCC>

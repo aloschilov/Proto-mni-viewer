@@ -102,6 +102,12 @@ private slots:
     void processPaintModeStateExited();
 
     void processSelectColorForPencil();
+    void processSelectBackgroundColor();
+
+    void showLegend();
+    void hideLegend();
+
+    void processScalarRangeChanged(double min, double max);
 
 private:
     void createActions();
@@ -177,6 +183,8 @@ private:
     QAction *activatePaintModeAction;
     QToolButton *selectPencilColorToolButton;
     QColor pencilColor;
+
+    QToolButton *selectBackgroundColorToolButton;
 
     bool leftMouseButtonIsPressed;
     bool isInPaintMode;

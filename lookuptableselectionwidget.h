@@ -15,6 +15,9 @@ QT_FORWARD_DECLARE_CLASS(QToolButton)
 QT_FORWARD_DECLARE_CLASS(QLineEdit)
 QT_FORWARD_DECLARE_CLASS(QGroupBox)
 QT_FORWARD_DECLARE_CLASS(QVBoxLayout)
+QT_FORWARD_DECLARE_CLASS(QCheckBox)
+QT_FORWARD_DECLARE_CLASS(QDoubleSpinBox)
+QT_FORWARD_DECLARE_CLASS(QPushButton)
 
 
 
@@ -29,6 +32,9 @@ public:
 signals:
     void currentLookupTableChanged(vtkSmartPointer<vtkLookupTable > lookupTable);
     void currentPerVertexColorsChanged(vtkSmartPointer<vtkUnsignedCharArray> colors);
+    void showLegend();
+    void hideLegend();
+    void scalarRangeChanged(double min, double max);
 
 public slots:
 
@@ -40,6 +46,15 @@ public slots:
     void processAddCustomDirectRgbToList();
     void openPerPointRgbFile();
     void savePerPointRgbFile();
+
+    void processShowLegendStateChanged(int state);
+    void setScalarRange(double min, double max);
+    void setDefaultRangeValues(double minDefault, double maxDefault);
+    void resetRangeToDefault();
+
+private slots:
+    void processMinValueChanged(double value);
+    void processMaxValueChanged(double value);
 
 private:
     void addLookupTableByImageFilename(const QString &filename);
@@ -69,7 +84,17 @@ private:
     QLineEdit *pathToScalarsLineEdit;
     QToolButton *specifyPathToScalars;
 
+    QDoubleSpinBox *minValue;
+    QDoubleSpinBox *maxValue;
+
+    QCheckBox *showLegendCheckbox;
+
     QVBoxLayout *mainLayout;
+
+    double defaultMinValue;
+    double defaultMaxValue;
+
+    QPushButton *resetRangeToDefaultButton;
 };
 
 #endif // LOOKUPTABLESELECTIONWIDGET_H

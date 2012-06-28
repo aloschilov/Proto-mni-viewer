@@ -121,6 +121,10 @@ MainWindow::MainWindow(QWidget *parent)
             this, SLOT(updateLookupTable(vtkSmartPointer<vtkLookupTable>)));
     connect(lookupTableSelectionWidget, SIGNAL(currentPerVertexColorsChanged(vtkSmartPointer<vtkUnsignedCharArray> )),
             this, SLOT(updateDirectRgbColors(vtkSmartPointer<vtkUnsignedCharArray> )));
+    connect(lookupTableSelectionWidget, SIGNAL(showLegend()),
+            this, SLOT(showLegend()));
+    connect(lookupTableSelectionWidget, SIGNAL(hideLegend()),
+            this, SLOT(hideLegend()));
 
     connect(shadingModelSelectionWidget, SIGNAL(shadingModelChangedToFlat()),
             this, SLOT(setFlatShadingModel()));
@@ -168,6 +172,9 @@ MainWindow::MainWindow(QWidget *parent)
             this, SLOT(processWritingPngFilenameChanged(QString)));
     connect(animationManagementWidget, SIGNAL(pngWritingRequested()),
             this, SLOT(processWritePng()));
+
+    connect(lookupTableSelectionWidget, SIGNAL(scalarRangeChanged(double, double)),
+            this, SLOT(processScalarRangeChanged(double,double)));
 }
 
 void MainWindow::initializeVtk()
@@ -580,6 +587,8 @@ void MainWindow::openPerPointScalarsFile()
 
     reader->GetOutput()->GetPointData()->SetScalars(scalars);
     mapper->SetScalarRange(min, max);
+    lookupTableSelectionWidget->setScalarRange(min, max);
+    lookupTableSelectionWidget->setDefaultRangeValues(min, max);
 }
 
 void MainWindow::openPerPointRgbFile()
@@ -636,11 +645,9 @@ void MainWindow::updateLookupTable(vtkSmartPointer<vtkLookupTable> lookupTable)
 {
     mapper->SetLookupTable(lookupTable);
     mapper->SetColorModeToMapScalars();
-    scalar_bar->VisibilityOn();
     scalar_bar->SetLookupTable(lookupTable);
     reader->GetOutput()->GetPointData()->SetScalars(scalars);
     mapper->SetScalarRange(min, max);
-
     qvtkWidget->GetRenderWindow()->Render();
 }
 
@@ -666,7 +673,6 @@ void MainWindow::updateDirectRgbColors(vtkSmartPointer<vtkUnsignedCharArray> col
     }
 
     reader->GetOutput()->GetPointData()->SetScalars(colors);
-    scalar_bar->VisibilityOff();
 
     qvtkWidget->GetRenderWindow()->Render();
 }
@@ -701,8 +707,15 @@ void MainWindow::createActions()
     selectPencilColorToolButton = new QToolButton(this);
     selectPencilColorToolButton->setIcon(getIconFilledWithColor(QColor(Qt::black)));
 
+    // Create background color selection button
+
+    selectBackgroundColorToolButton = new QToolButton(this);
+    selectBackgroundColorToolButton->setIcon(QIcon(":/images/background_color.svg"));
+
     connect(selectPencilColorToolButton, SIGNAL(clicked()),
             this, SLOT(processSelectColorForPencil()));
+    connect(selectBackgroundColorToolButton, SIGNAL(clicked()),
+            this, SLOT(processSelectBackgroundColor()));
 }
 
 void MainWindow::createMenu()
@@ -723,6 +736,7 @@ void MainWindow::createToolbar()
     modesToolBar->addAction(activateObjectAnimationModeAction);
     modesToolBar->addAction(activatePaintModeAction);
     modesToolBar->addWidget(selectPencilColorToolButton);
+    modesToolBar->addWidget(selectBackgroundColorToolButton);
 }
 
 void MainWindow::setFlatShadingModel()
@@ -1268,4 +1282,36 @@ void MainWindow::processSelectColorForPencil()
 
     pencilColor = color;
     markedAreaPinActor->GetProperty()->SetColor(pencilColor.redF(), pencilColor.greenF(), pencilColor.blueF());
+}
+
+void MainWindow::processSelectBackgroundColor()
+{
+    QColor color;
+    color = QColorDialog::getColor(Qt::black, this);
+
+    if(color.isValid())
+    {
+        ren->SetBackground(color.redF(), color.greenF(), color.blueF());
+    }
+}
+
+
+void MainWindow::showLegend()
+{
+    scalar_bar->VisibilityOn();
+    qvtkWidget->GetRenderWindow()->Render();
+}
+
+void MainWindow::hideLegend()
+{
+    scalar_bar->VisibilityOff();
+    qvtkWidget->GetRenderWindow()->Render();
+}
+
+void MainWindow::processScalarRangeChanged(double min, double max)
+{
+    this->min = min;
+    this->max = max;
+    mapper->SetScalarRange(min, max);
+    qvtkWidget->GetRenderWindow()->Render();
 }

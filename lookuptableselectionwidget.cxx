@@ -31,6 +31,9 @@ LookupTableSelectionWidget::LookupTableSelectionWidget(QWidget *parent) :
     QGroupBox *customColormapGroupBox = createCustomColormapGroupBox();
     QGroupBox *customDirectRgbGroupBox = createCustomDirectRgbGroupBox();
 
+    showLegendCheckbox = new QCheckBox(tr("Show legend"));
+    showLegendCheckbox->setChecked(true);
+
     mainLayout = new QVBoxLayout();
 
     QAbstractButton *button;
@@ -43,6 +46,26 @@ LookupTableSelectionWidget::LookupTableSelectionWidget(QWidget *parent) :
 
     mainLayout->addWidget(customColormapGroupBox);
     mainLayout->addWidget(customDirectRgbGroupBox);
+    mainLayout->addWidget(showLegendCheckbox);
+
+    minValue = new QDoubleSpinBox();
+    minValue->setRange(-10000, 10000);
+    QHBoxLayout *minValueLayout = new QHBoxLayout;
+    QLabel *minValueLabel = new QLabel(tr("Lookup table min value:"));
+    minValueLayout->addWidget(minValueLabel);
+    minValueLayout->addWidget(minValue);
+    mainLayout->addLayout(minValueLayout);
+
+    maxValue = new QDoubleSpinBox();
+    maxValue->setRange(-10000, 10000);
+    QHBoxLayout *maxValueLayout = new QHBoxLayout;
+    QLabel *maxValueLabel = new QLabel(tr("Lookup table max value:"));
+    maxValueLayout->addWidget(maxValueLabel);
+    maxValueLayout->addWidget(maxValue);
+    mainLayout->addLayout(maxValueLayout);
+
+    resetRangeToDefaultButton = new QPushButton(tr("Reset range"));
+    mainLayout->addWidget(resetRangeToDefaultButton);
 
     mainLayout->addStretch();
     setLayout(mainLayout);
@@ -58,6 +81,17 @@ LookupTableSelectionWidget::LookupTableSelectionWidget(QWidget *parent) :
             this, SLOT(openPerPointRgbFile()));
     connect(addCustomDirectRgbToList, SIGNAL(clicked()),
             this, SLOT(processAddCustomDirectRgbToList()));
+    connect(showLegendCheckbox, SIGNAL(stateChanged(int)),
+            this, SLOT(processShowLegendStateChanged(int)));
+    connect(minValue, SIGNAL(valueChanged(double)),
+            this, SLOT(processMinValueChanged(double)));
+    connect(maxValue, SIGNAL(valueChanged(double)),
+            this, SLOT(processMaxValueChanged(double)));
+    connect(resetRangeToDefaultButton, SIGNAL(clicked()),
+            this, SLOT(resetRangeToDefault()));
+
+    defaultMaxValue = 1.0;
+    defaultMinValue = 0.0;
 }
 
 vtkSmartPointer<vtkLookupTable > LookupTableSelectionWidget::getCurrentLookupTable()
@@ -70,11 +104,24 @@ void LookupTableSelectionWidget::processButtonGroupButtonClicked(int /*id*/)
     if(lookupTables.contains(lookupTablesButtonGroup->checkedId()))
     {
         emit currentLookupTableChanged(lookupTables[lookupTablesButtonGroup->checkedId()]);
+
+        showLegendCheckbox->setEnabled(true);
+
+        if(showLegendCheckbox->checkState() == Qt::Checked)
+        {
+            emit showLegend();
+        }
+        else
+        {
+            emit hideLegend();
+        }
     }
 
     if(perVertexColors.contains(lookupTablesButtonGroup->checkedId()))
     {
         emit currentPerVertexColorsChanged(perVertexColors[lookupTablesButtonGroup->checkedId()]);
+        showLegendCheckbox->setEnabled(false);
+        emit hideLegend();
     }
 }
 
@@ -140,6 +187,49 @@ void LookupTableSelectionWidget::openPerPointRgbFile()
 void LookupTableSelectionWidget::savePerPointRgbFile()
 {
 
+}
+
+void LookupTableSelectionWidget::processShowLegendStateChanged(int state)
+{
+    if(state == Qt::Checked)
+    {
+        emit showLegend();
+    }
+    else
+    {
+        emit hideLegend();
+    }
+}
+
+void LookupTableSelectionWidget::setScalarRange(double min, double max)
+{
+    qDebug() << "void LookupTableSelectionWidget::setScalarRange(double min, double max)";
+    qDebug() << min;
+    qDebug() << max;
+    minValue->setValue(min);
+    maxValue->setValue(max);
+}
+
+void LookupTableSelectionWidget::setDefaultRangeValues(double minDefault, double maxDefault)
+{
+    defaultMinValue = minDefault;
+    defaultMaxValue = maxDefault;
+}
+
+void LookupTableSelectionWidget::resetRangeToDefault()
+{
+    minValue->setValue(defaultMinValue);
+    maxValue->setValue(defaultMaxValue);
+}
+
+void LookupTableSelectionWidget::processMinValueChanged(double value)
+{
+    emit scalarRangeChanged(minValue->value(), maxValue->value());
+}
+
+void LookupTableSelectionWidget::processMaxValueChanged(double value)
+{
+    emit scalarRangeChanged(minValue->value(), maxValue->value());
 }
 
 void LookupTableSelectionWidget::addDirectRgbColors(const QString &filename)
