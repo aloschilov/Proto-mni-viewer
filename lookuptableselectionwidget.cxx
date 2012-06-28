@@ -240,22 +240,24 @@ void LookupTableSelectionWidget::addDirectRgbColors(const QString &filename)
 
     vtkSmartPointer<vtkUnsignedCharArray> colors =
       vtkSmartPointer<vtkUnsignedCharArray>::New();
-    colors->SetNumberOfComponents(3);
+    colors->SetNumberOfComponents(4);
     colors->SetName ("Colors");
 
     while(!in.eof())
     {
-        int rgb[3];
+        double rgba[4];
 
-        in >> rgb[0];
-        in >> rgb[1];
-        in >> rgb[2];
+        in >> rgba[0];
+        in >> rgba[1];
+        in >> rgba[2];
+        in >> rgba[3];
 
-        unsigned char value[3];
+        unsigned char value[4];
 
-        value[0] = rgb[0];
-        value[1] = rgb[1];
-        value[2] = rgb[2];
+        value[0] = rgba[0]*255;
+        value[1] = rgba[1]*255;
+        value[2] = rgba[2]*255;
+        value[3] = rgba[3]*255;
 
         colors->InsertNextTupleValue(value);
     }
