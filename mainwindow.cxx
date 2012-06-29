@@ -71,41 +71,47 @@ MainWindow::MainWindow(QWidget *parent)
     qvtkWidget = new QVTKWidget();
 
     lookupTableSelectionWidget = new LookupTableSelectionWidget();
-
     lookupTableSelectionDockWidget = new QDockWidget(tr("Lookup table properties"), this);
-    lookupTableSelectionDockWidget->setWidget(lookupTableSelectionWidget);
+    QScrollArea *lookupTableSelectionScrollArea = new QScrollArea;
+    lookupTableSelectionScrollArea->setWidget(lookupTableSelectionWidget);
+    lookupTableSelectionDockWidget->setWidget(lookupTableSelectionScrollArea);
     lookupTableSelectionDockWidget->setAllowedAreas(Qt::RightDockWidgetArea | Qt::LeftDockWidgetArea);
     lookupTableSelectionDockWidget->setVisible(true);
     addDockWidget(Qt::RightDockWidgetArea, lookupTableSelectionDockWidget, Qt::Horizontal);
 
     shadingModelSelectionWidget = new ShadingModelSelectionWidget();
-
     shadingModelSelectionDockWidget = new QDockWidget(tr("Shading model properties"), this);
-    shadingModelSelectionDockWidget->setWidget(shadingModelSelectionWidget);
+    QScrollArea *shadingModelSelectionScrollArea = new QScrollArea;
+    shadingModelSelectionScrollArea->setWidget(shadingModelSelectionWidget);
+    shadingModelSelectionDockWidget->setWidget(shadingModelSelectionScrollArea);
     shadingModelSelectionDockWidget->setAllowedAreas(Qt::RightDockWidgetArea | Qt::LeftDockWidgetArea);
     shadingModelSelectionDockWidget->setVisible(true);
     addDockWidget(Qt::RightDockWidgetArea, shadingModelSelectionDockWidget, Qt::Horizontal);
 
     lightingPropertiesWidget = new LightingPropertiesWidget();
-
     lightingPropertiesDockWidget = new QDockWidget(tr("Lighting properties"), this);
-    lightingPropertiesDockWidget->setWidget(lightingPropertiesWidget);
+    QScrollArea *lightingPropertiesWidgetScrollArea = new QScrollArea;
+    lightingPropertiesWidgetScrollArea->setWidget(lightingPropertiesWidget);
+    lightingPropertiesDockWidget->setWidget(lightingPropertiesWidgetScrollArea);
     lightingPropertiesDockWidget->setAllowedAreas(Qt::RightDockWidgetArea | Qt::LeftDockWidgetArea);
     lightingPropertiesDockWidget->setVisible(true);
     addDockWidget(Qt::RightDockWidgetArea, lightingPropertiesDockWidget, Qt::Horizontal);
 
-    surfaceSelectionWidget = new SurfaceSelectionWidget();
 
+    surfaceSelectionWidget = new SurfaceSelectionWidget();
     surfaceSelectionDockWidget = new QDockWidget(tr("Surface selection"), this);
-    surfaceSelectionDockWidget->setWidget(surfaceSelectionWidget);
+    QScrollArea *surfaceSelectionWidgetScrollArea = new QScrollArea;
+    surfaceSelectionWidgetScrollArea->setWidget(surfaceSelectionWidget);
+    surfaceSelectionDockWidget->setWidget(surfaceSelectionWidgetScrollArea);
     surfaceSelectionDockWidget->setAllowedAreas(Qt::RightDockWidgetArea | Qt::LeftDockWidgetArea);
     addDockWidget(Qt::RightDockWidgetArea, surfaceSelectionDockWidget, Qt::Horizontal);
 
 
     animationManagementWidget = new AnimationManagementWidget();
-
     animationManagementDockWidget = new QDockWidget(tr("Animation"), this);
-    animationManagementDockWidget->setWidget(animationManagementWidget);
+    QScrollArea *animationManagementWidgetScrollArea = new QScrollArea;
+    animationManagementWidgetScrollArea->setWidget(animationManagementWidget);
+    animationManagementDockWidget->setWidget(animationManagementWidgetScrollArea);
     animationManagementDockWidget->setAllowedAreas(Qt::RightDockWidgetArea | Qt::LeftDockWidgetArea);
     addDockWidget(Qt::LeftDockWidgetArea, animationManagementDockWidget, Qt::Horizontal);
 
@@ -727,7 +733,17 @@ void MainWindow::createMenu()
     file->addAction(openPerPointScalarsFileAction);
 
     QMenu *view = menubar->addMenu("&View");
+    lookupTableSelectionDockWidget->setVisible(false);
+    shadingModelSelectionDockWidget->setVisible(false);
+    lightingPropertiesDockWidget->setVisible(false);
+    surfaceSelectionDockWidget->setVisible(false);
+    animationManagementDockWidget->setVisible(false);
+
     view->addAction(lookupTableSelectionDockWidget->toggleViewAction());
+    view->addAction(shadingModelSelectionDockWidget->toggleViewAction());
+    view->addAction(lightingPropertiesDockWidget->toggleViewAction());
+    view->addAction(surfaceSelectionDockWidget->toggleViewAction());
+    view->addAction(animationManagementDockWidget->toggleViewAction());
 }
 
 void MainWindow::createToolbar()
