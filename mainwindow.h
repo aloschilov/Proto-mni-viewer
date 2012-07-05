@@ -51,9 +51,12 @@ private slots:
 
     void openMeshFile();
     void openPerPointScalarsFile();
+    void openPerPointScalarsByFilename(QString fileName);
 
     void openPerPointRgbFile();
     void savePerPointRgbFile();
+
+    void saveCurrentTransformation();
 
     void updateLookupTable(vtkSmartPointer<vtkLookupTable> lookupTable);
     void updateDirectRgbColors(vtkSmartPointer<vtkUnsignedCharArray> colors);
@@ -108,6 +111,8 @@ private slots:
     void hideLegend();
 
     void processScalarRangeChanged(double min, double max);
+
+    void processTransformationResetion();
 
 private:
     void createActions();
@@ -178,6 +183,7 @@ private:
     QState cameraModeState;
     QState paintModeState;
 
+    QAction *saveTransformationAction;
     QAction *activateCameraModeAction;
     QAction *activateObjectAnimationModeAction;
     QAction *activatePaintModeAction;

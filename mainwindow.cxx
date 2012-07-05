@@ -181,6 +181,9 @@ MainWindow::MainWindow(QWidget *parent)
 
     connect(lookupTableSelectionWidget, SIGNAL(scalarRangeChanged(double, double)),
             this, SLOT(processScalarRangeChanged(double,double)));
+
+    connect(animationManagementWidget, SIGNAL(tranformationResetionRequested()),
+            this, SLOT(processTransformationResetion()));
 }
 
 void MainWindow::initializeVtk()
@@ -484,6 +487,32 @@ void MainWindow::showEvent ( QShowEvent * event )
         }
     }
 
+    // Parse --scalars-to-load option
+
+    for ( int i = 0; i < num; i++ )
+    {
+        QString s = qApp->argv()[i];
+
+        if ( s.startsWith( "--scalars-to-load" ) )
+        {
+            if(num - (i+1) >= 1)
+            {
+                ++i;
+                QString fileName = qApp->argv()[i];
+                if(QFile::exists(fileName))
+                {
+                    openPerPointScalarsByFilename(fileName);
+                    qDebug() << "parsed --scalars-to-load" << fileName;
+                    break;
+                }
+                else
+                {
+                    qDebug() << "Wrong file specified";
+                }
+            }
+        }
+    }
+
     // Parse --animation-name option
 
     for ( int i = 0; i < num; i++ )
@@ -570,6 +599,11 @@ void MainWindow::openPerPointScalarsFile()
         return;
     }
 
+    openPerPointScalarsByFilename(fileName);
+}
+
+void MainWindow::openPerPointScalarsByFilename(QString fileName)
+{
     scalars = vtkFloatArray::New();
     ifstream in(fileName.toStdString().c_str(), ios::in);
 
@@ -647,6 +681,31 @@ void MainWindow::savePerPointRgbFile()
     }
 }
 
+void MainWindow::saveCurrentTransformation()
+{
+    QString fileName = QFileDialog::getSaveFileName(this,
+                                                    tr("Save transformation"),
+                                                    "",
+                                                    tr("Transformation (*.transformation)"));
+    if(fileName.isEmpty())
+    {
+        return;
+    }
+
+    double pos[3];
+    double o[3];
+    double scale[3];
+
+    mniObjectTransfrom->GetPosition(pos);
+    mniObjectTransfrom->GetOrientation(o);
+    mniObjectTransfrom->GetScale(scale);
+
+    ofstream transformationFile;
+    transformationFile.open(fileName.toStdString().c_str());
+    transformationFile << pos[0] << " " << pos[1] << " " << pos[2] << " " << o[0] << " " << o[1] << " " << o[2];
+    transformationFile.close();
+}
+
 void MainWindow::updateLookupTable(vtkSmartPointer<vtkLookupTable> lookupTable)
 {
     mapper->SetLookupTable(lookupTable);
@@ -719,10 +778,16 @@ void MainWindow::createActions()
     selectBackgroundColorToolButton = new QToolButton(this);
     selectBackgroundColorToolButton->setIcon(QIcon(":/images/background_color.svg"));
 
+    // Create save transformation action
+
+    saveTransformationAction = new QAction(tr("Save tranformation"), this);
+
     connect(selectPencilColorToolButton, SIGNAL(clicked()),
             this, SLOT(processSelectColorForPencil()));
     connect(selectBackgroundColorToolButton, SIGNAL(clicked()),
             this, SLOT(processSelectBackgroundColor()));
+    connect(saveTransformationAction, SIGNAL(triggered()),
+            this, SLOT(saveCurrentTransformation()));
 }
 
 void MainWindow::createMenu()
@@ -731,6 +796,7 @@ void MainWindow::createMenu()
     QMenu *file = menubar->addMenu("&File");
     file->addAction(openMeshFileAction);
     file->addAction(openPerPointScalarsFileAction);
+    file->addAction(saveTransformationAction);
 
     QMenu *view = menubar->addMenu("&View");
     lookupTableSelectionDockWidget->setVisible(false);
@@ -1108,7 +1174,6 @@ void MainWindow::saveObjectStateAsFirstAnimationPoint()
                 pos[0],
                 pos[1],
                 pos[2],
-                1.0,
                 o[0],
                 o[1],
                 o[2]);
@@ -1127,7 +1192,6 @@ void MainWindow::saveObjectStateAsSecondAnimationPoint()
                 pos[0],
                 pos[1],
                 pos[2],
-                1.0,
                 o[0],
                 o[1],
                 o[2]);
@@ -1330,5 +1394,11 @@ void MainWindow::processScalarRangeChanged(double min, double max)
     this->min = min;
     this->max = max;
     mapper->SetScalarRange(min, max);
+    qvtkWidget->GetRenderWindow()->Render();
+}
+
+void MainWindow::processTransformationResetion()
+{
+    mniObjectTransfrom->Identity();
     qvtkWidget->GetRenderWindow()->Render();
 }

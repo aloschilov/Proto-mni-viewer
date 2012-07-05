@@ -11,7 +11,6 @@ AnimationManagementWidget::AnimationManagementWidget(QWidget *parent) :
     firstPointXDoubleSpinBox = new QDoubleSpinBox();
     firstPointYDoubleSpinBox = new QDoubleSpinBox();
     firstPointZDoubleSpinBox = new QDoubleSpinBox();
-    firstPointScaleDoubleSpinBox = new QDoubleSpinBox();
     firstPointRotXDoubleSpinBox = new QDoubleSpinBox();
     firstPointRotYDoubleSpinBox = new QDoubleSpinBox();
     firstPointRotZDoubleSpinBox = new QDoubleSpinBox();
@@ -19,7 +18,6 @@ AnimationManagementWidget::AnimationManagementWidget(QWidget *parent) :
     firstPointXDoubleSpinBox->setRange(-10000, 10000);
     firstPointYDoubleSpinBox->setRange(-10000, 10000);
     firstPointZDoubleSpinBox->setRange(-10000, 10000);
-    firstPointScaleDoubleSpinBox->setRange(-10000, 10000);
     firstPointRotXDoubleSpinBox->setRange(-10000, 10000);
     firstPointRotYDoubleSpinBox->setRange(-10000, 10000);
     firstPointRotZDoubleSpinBox->setRange(-10000, 10000);
@@ -30,12 +28,10 @@ AnimationManagementWidget::AnimationManagementWidget(QWidget *parent) :
     QLabel *firstPointRotXLabel = new QLabel(tr("Rot X"));
     QLabel *firstPointRotYLabel = new QLabel(tr("Rot Y"));
     QLabel *firstPointRotZLabel = new QLabel(tr("Rot Z"));
-    QLabel *firstPointScaleLabel = new QLabel(tr("Scale"));
 
     secondPointXDoubleSpinBox = new QDoubleSpinBox();
     secondPointYDoubleSpinBox = new QDoubleSpinBox();
     secondPointZDoubleSpinBox = new QDoubleSpinBox();
-    secondPointScaleDoubleSpinBox = new QDoubleSpinBox();
     secondPointRotXDoubleSpinBox = new QDoubleSpinBox();
     secondPointRotYDoubleSpinBox = new QDoubleSpinBox();
     secondPointRotZDoubleSpinBox = new QDoubleSpinBox();
@@ -43,7 +39,6 @@ AnimationManagementWidget::AnimationManagementWidget(QWidget *parent) :
     secondPointXDoubleSpinBox->setRange(-10000, 10000);
     secondPointYDoubleSpinBox->setRange(-10000, 10000);
     secondPointZDoubleSpinBox->setRange(-10000, 10000);
-    secondPointScaleDoubleSpinBox->setRange(-10000, 10000);
     secondPointRotXDoubleSpinBox->setRange(-10000, 10000);
     secondPointRotYDoubleSpinBox->setRange(-10000, 10000);
     secondPointRotZDoubleSpinBox->setRange(-10000, 10000);
@@ -54,7 +49,6 @@ AnimationManagementWidget::AnimationManagementWidget(QWidget *parent) :
     QLabel *secondPointRotXLabel = new QLabel(tr("Rot X"));
     QLabel *secondPointRotYLabel = new QLabel(tr("Rot Y"));
     QLabel *secondPointRotZLabel = new QLabel(tr("Rot Z"));
-    QLabel *secondPointScaleLabel = new QLabel(tr("Scale"));
 
     QGroupBox *firstPointGroupBox = new QGroupBox;
     firstPointGroupBox->setTitle(tr("1-st animation point"));
@@ -70,19 +64,16 @@ AnimationManagementWidget::AnimationManagementWidget(QWidget *parent) :
     firstPointGroupBoxLayout->addWidget(firstPointZLabel, 2, 0);
     firstPointGroupBoxLayout->addWidget(firstPointZDoubleSpinBox, 2, 1);
 
-    firstPointGroupBoxLayout->addWidget(firstPointScaleLabel, 3, 0);
-    firstPointGroupBoxLayout->addWidget(firstPointScaleDoubleSpinBox, 3, 1);
+    firstPointGroupBoxLayout->addWidget(firstPointRotXLabel, 3, 0);
+    firstPointGroupBoxLayout->addWidget(firstPointRotXDoubleSpinBox, 3, 1);
 
-    firstPointGroupBoxLayout->addWidget(firstPointRotXLabel, 4, 0);
-    firstPointGroupBoxLayout->addWidget(firstPointRotXDoubleSpinBox, 4, 1);
+    firstPointGroupBoxLayout->addWidget(firstPointRotYLabel, 4, 0);
+    firstPointGroupBoxLayout->addWidget(firstPointRotYDoubleSpinBox, 4, 1);
 
-    firstPointGroupBoxLayout->addWidget(firstPointRotYLabel, 5, 0);
-    firstPointGroupBoxLayout->addWidget(firstPointRotYDoubleSpinBox, 5, 1);
+    firstPointGroupBoxLayout->addWidget(firstPointRotZLabel, 5, 0);
+    firstPointGroupBoxLayout->addWidget(firstPointRotZDoubleSpinBox, 5, 1);
 
-    firstPointGroupBoxLayout->addWidget(firstPointRotZLabel, 6, 0);
-    firstPointGroupBoxLayout->addWidget(firstPointRotZDoubleSpinBox, 6, 1);
-
-    firstPointGroupBoxLayout->addWidget(saveCurrentStateAsStartPointButton, 7, 0, 1, 2);
+    firstPointGroupBoxLayout->addWidget(saveCurrentStateAsStartPointButton, 6, 0, 1, 2);
 
 
     QGroupBox *secondPointGroupBox = new QGroupBox;
@@ -98,19 +89,16 @@ AnimationManagementWidget::AnimationManagementWidget(QWidget *parent) :
     secondPointGroupBoxLayout->addWidget(secondPointZLabel, 2, 0);
     secondPointGroupBoxLayout->addWidget(secondPointZDoubleSpinBox, 2, 1);
 
-    secondPointGroupBoxLayout->addWidget(secondPointScaleLabel, 3, 0);
-    secondPointGroupBoxLayout->addWidget(secondPointScaleDoubleSpinBox, 3, 1);
+    secondPointGroupBoxLayout->addWidget(secondPointRotXLabel, 3, 0);
+    secondPointGroupBoxLayout->addWidget(secondPointRotXDoubleSpinBox, 3, 1);
 
-    secondPointGroupBoxLayout->addWidget(secondPointRotXLabel, 4, 0);
-    secondPointGroupBoxLayout->addWidget(secondPointRotXDoubleSpinBox, 4, 1);
+    secondPointGroupBoxLayout->addWidget(secondPointRotYLabel, 4, 0);
+    secondPointGroupBoxLayout->addWidget(secondPointRotYDoubleSpinBox, 4, 1);
 
-    secondPointGroupBoxLayout->addWidget(secondPointRotYLabel, 5, 0);
-    secondPointGroupBoxLayout->addWidget(secondPointRotYDoubleSpinBox, 5, 1);
+    secondPointGroupBoxLayout->addWidget(secondPointRotZLabel, 5, 0);
+    secondPointGroupBoxLayout->addWidget(secondPointRotZDoubleSpinBox, 5, 1);
 
-    secondPointGroupBoxLayout->addWidget(secondPointRotZLabel, 6, 0);
-    secondPointGroupBoxLayout->addWidget(secondPointRotZDoubleSpinBox, 6, 1);
-
-    secondPointGroupBoxLayout->addWidget(saveCurrentStateAsEndPointButton, 7, 0, 1, 2);
+    secondPointGroupBoxLayout->addWidget(saveCurrentStateAsEndPointButton, 6, 0, 1, 2);
 
     secondPointGroupBox->setLayout(secondPointGroupBoxLayout);
 
@@ -118,6 +106,9 @@ AnimationManagementWidget::AnimationManagementWidget(QWidget *parent) :
     QVBoxLayout *mainLayout = new QVBoxLayout();
     mainLayout->addWidget(firstPointGroupBox);
     mainLayout->addWidget(secondPointGroupBox);
+
+    resetObjectTransformationButton = new QPushButton(tr("Reset transformation"));
+    mainLayout->addWidget(resetObjectTransformationButton);
 
     animationPeriodSpinBox = new QSpinBox();
     animationPeriodSpinBox->setRange(0, 1000000);
@@ -206,8 +197,6 @@ AnimationManagementWidget::AnimationManagementWidget(QWidget *parent) :
             this, SLOT(processFirstPointRotYDoubleSpinBoxValueChanged(double)));
     connect(firstPointRotZDoubleSpinBox, SIGNAL(valueChanged(double)),
             this, SLOT(processFirstPointRotZDoubleSpinBoxValueChanged(double)));
-    connect(firstPointScaleDoubleSpinBox, SIGNAL(valueChanged(double)),
-            this, SLOT(processFirstPointScaleDoubleSpinBoxValueChanged(double)));
 
     connect(secondPointXDoubleSpinBox, SIGNAL(valueChanged(double)),
             this, SLOT(processSecondPointXDoubleSpinBoxValueChanged(double)));
@@ -222,11 +211,12 @@ AnimationManagementWidget::AnimationManagementWidget(QWidget *parent) :
             this, SLOT(processSecondPointRotYDoubleSpinBoxValueChanged(double)));
     connect(secondPointRotZDoubleSpinBox, SIGNAL(valueChanged(double)),
             this, SLOT(processSecondPointRotZDoubleSpinBoxValueChanged(double)));
-    connect(secondPointRotZDoubleSpinBox, SIGNAL(valueChanged(double)),
-            this, SLOT(processSecondPointScaleDoubleSpinBoxValueChanged(double)));
 
     connect(pngWrite, SIGNAL(clicked()),
             this, SLOT(processPngWrite()));
+
+    connect(resetObjectTransformationButton, SIGNAL(clicked()),
+            this, SIGNAL(tranformationResetionRequested()));
 
     writingLoopThread = new WritingLoopThread();
     writingLoopThread->setParent(this);
@@ -263,7 +253,7 @@ double AnimationManagementWidget::getCurrentRotZ()
     return zRotAnimation.currentValue().toDouble();
 }
 
-void AnimationManagementWidget::saveCurrentObjectStateAsStartPoint(double x, double y, double z, double scale, double rotX, double rotY, double rotZ)
+void AnimationManagementWidget::saveCurrentObjectStateAsStartPoint(double x, double y, double z, double rotX, double rotY, double rotZ)
 {
     firstPointXDoubleSpinBox->setValue(x);
     firstPointYDoubleSpinBox->setValue(y);
@@ -271,12 +261,11 @@ void AnimationManagementWidget::saveCurrentObjectStateAsStartPoint(double x, dou
     firstPointRotXDoubleSpinBox->setValue(rotX);
     firstPointRotYDoubleSpinBox->setValue(rotY);
     firstPointRotZDoubleSpinBox->setValue(rotZ);
-    firstPointScaleDoubleSpinBox->setValue(scale);
 
     updateStartValueFromControls();
 }
 
-void AnimationManagementWidget::saveCurrentObjectStateAsEndPoint(double x, double y, double z, double scale, double rotX, double rotY, double rotZ)
+void AnimationManagementWidget::saveCurrentObjectStateAsEndPoint(double x, double y, double z, double rotX, double rotY, double rotZ)
 {
     secondPointXDoubleSpinBox->setValue(x);
     secondPointYDoubleSpinBox->setValue(y);
@@ -284,7 +273,6 @@ void AnimationManagementWidget::saveCurrentObjectStateAsEndPoint(double x, doubl
     secondPointRotXDoubleSpinBox->setValue(rotX);
     secondPointRotYDoubleSpinBox->setValue(rotY);
     secondPointRotZDoubleSpinBox->setValue(rotZ);
-    secondPointScaleDoubleSpinBox->setValue(scale);
 
     updateEndValueFromControls();
 }
@@ -487,11 +475,6 @@ void AnimationManagementWidget::processFirstPointRotZDoubleSpinBoxValueChanged(d
     updateStartValueFromControls();
 }
 
-void AnimationManagementWidget::processFirstPointScaleDoubleSpinBoxValueChanged(double value)
-{
-    updateStartValueFromControls();
-}
-
 void AnimationManagementWidget::processSecondPointXDoubleSpinBoxValueChanged(double value)
 {
     updateEndValueFromControls();
@@ -518,11 +501,6 @@ void AnimationManagementWidget::processSecondPointRotYDoubleSpinBoxValueChanged(
 }
 
 void AnimationManagementWidget::processSecondPointRotZDoubleSpinBoxValueChanged(double value)
-{
-    updateEndValueFromControls();
-}
-
-void AnimationManagementWidget::processSecondPointScaleDoubleSpinBoxValueChanged(double value)
 {
     updateEndValueFromControls();
 }

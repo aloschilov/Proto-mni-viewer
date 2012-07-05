@@ -96,9 +96,10 @@ signals:
     void currentAviFilenameChanged(QString filename);
     void currentPngFilenameChanged(QString filename);
     void pngWritingRequested();
+    void tranformationResetionRequested();
 public slots:
-    void saveCurrentObjectStateAsStartPoint(double x, double y, double z, double scale, double rotX, double rotY, double rotZ);
-    void saveCurrentObjectStateAsEndPoint(double x, double y, double z, double scale, double rotX, double rotY, double rotZ);
+    void saveCurrentObjectStateAsStartPoint(double x, double y, double z, double rotX, double rotY, double rotZ);
+    void saveCurrentObjectStateAsEndPoint(double x, double y, double z, double rotX, double rotY, double rotZ);
     void processFrameIsWritten();
     void setAviFilename(QString fileName);
     void setPngFilename(QString fileName);
@@ -125,8 +126,6 @@ private slots:
     void processFirstPointRotYDoubleSpinBoxValueChanged(double value);
     void processFirstPointRotZDoubleSpinBoxValueChanged(double value);
 
-    void processFirstPointScaleDoubleSpinBoxValueChanged(double value);
-
     void processSecondPointXDoubleSpinBoxValueChanged(double value);
     void processSecondPointYDoubleSpinBoxValueChanged(double value);
     void processSecondPointZDoubleSpinBoxValueChanged(double value);
@@ -134,8 +133,6 @@ private slots:
     void processSecondPointRotXDoubleSpinBoxValueChanged(double value);
     void processSecondPointRotYDoubleSpinBoxValueChanged(double value);
     void processSecondPointRotZDoubleSpinBoxValueChanged(double value);
-
-    void processSecondPointScaleDoubleSpinBoxValueChanged(double value);
 
     void processPngWrite();
 
@@ -172,8 +169,6 @@ private:
     QDoubleSpinBox *firstPointRotYDoubleSpinBox;
     QDoubleSpinBox *firstPointRotZDoubleSpinBox;
 
-    QDoubleSpinBox *firstPointScaleDoubleSpinBox;
-
     QDoubleSpinBox *secondPointXDoubleSpinBox;
     QDoubleSpinBox *secondPointYDoubleSpinBox;
     QDoubleSpinBox *secondPointZDoubleSpinBox;
@@ -182,7 +177,7 @@ private:
     QDoubleSpinBox *secondPointRotYDoubleSpinBox;
     QDoubleSpinBox *secondPointRotZDoubleSpinBox;
 
-    QDoubleSpinBox *secondPointScaleDoubleSpinBox;
+    QPushButton *resetObjectTransformationButton;
 
     QSpinBox *animationPeriodSpinBox;
 

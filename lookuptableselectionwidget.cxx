@@ -174,7 +174,7 @@ void LookupTableSelectionWidget::openPerPointRgbFile()
     QString fileName = QFileDialog::getOpenFileName(this,
                                                     tr("Open colormap as per vertex RGB."),
                                                     "",
-                                                    tr("RGB file(*.rgb)"));
+                                                    tr("RGB file(*.rgb *.txt)"));
     if(fileName.isEmpty())
     {
         return;
@@ -297,9 +297,11 @@ QGroupBox *LookupTableSelectionWidget::createCustomColormapGroupBox()
 
     specifyFileToUseAsColormap = new QToolButton();
     specifyFileToUseAsColormap->setIcon(QIcon(":/images/open.png"));
+    specifyFileToUseAsColormap->setFixedSize(24, 24);
 
     addCustomColormapToList = new QToolButton();
     addCustomColormapToList->setIcon(QIcon(":/images/add.png"));
+    addCustomColormapToList->setFixedSize(24, 24);
     addCustomColormapToList->setEnabled(false);
 
     QHBoxLayout *buttonsLayout = new QHBoxLayout();
@@ -325,10 +327,12 @@ QGroupBox *LookupTableSelectionWidget::createCustomDirectRgbGroupBox()
 
     specifyPathToRgbFile = new QToolButton();
     specifyPathToRgbFile->setIcon(QIcon(":/images/open.png"));
+    specifyPathToRgbFile->setFixedSize(24, 24);
 
     addCustomDirectRgbToList = new QToolButton();
     addCustomDirectRgbToList->setIcon(QIcon(":/images/add.png"));
     addCustomDirectRgbToList->setEnabled(false);
+    addCustomDirectRgbToList->setFixedSize(24, 24);
 
     QHBoxLayout *buttonsLayout = new QHBoxLayout();
     buttonsLayout->addStretch();
