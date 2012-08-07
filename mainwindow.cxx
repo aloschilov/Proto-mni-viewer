@@ -1212,6 +1212,19 @@ void MainWindow::processCurrentTimeChanged()
     mniObjectTransfrom->Identity();
     mniObjectTransfrom->Translate(pos);
 
+    qDebug() << "pos[0]:" << pos[0];
+    qDebug() << "pos[1]:" << pos[1];
+    qDebug() << "pos[2]:" << pos[2];
+
+    double o[3];
+    o[0] = animationManagementWidget->getCurrentRotX();
+    o[1] = animationManagementWidget->getCurrentRotY();
+    o[2] = animationManagementWidget->getCurrentRotZ();
+
+    qDebug() << "o[0]:" << o[0];
+    qDebug() << "o[1]:" << o[1];
+    qDebug() << "o[2]:" << o[2];
+
     mniObjectTransfrom->RotateX(animationManagementWidget->getCurrentRotX());
     mniObjectTransfrom->RotateY(animationManagementWidget->getCurrentRotY());
     mniObjectTransfrom->RotateZ(animationManagementWidget->getCurrentRotZ());

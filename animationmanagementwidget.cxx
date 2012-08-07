@@ -262,7 +262,7 @@ void AnimationManagementWidget::saveCurrentObjectStateAsStartPoint(double x, dou
     firstPointRotYDoubleSpinBox->setValue(rotY);
     firstPointRotZDoubleSpinBox->setValue(rotZ);
 
-    updateStartValueFromControls();
+    updateValuesFromControls();
 }
 
 void AnimationManagementWidget::saveCurrentObjectStateAsEndPoint(double x, double y, double z, double rotX, double rotY, double rotZ)
@@ -274,7 +274,7 @@ void AnimationManagementWidget::saveCurrentObjectStateAsEndPoint(double x, doubl
     secondPointRotYDoubleSpinBox->setValue(rotY);
     secondPointRotZDoubleSpinBox->setValue(rotZ);
 
-    updateEndValueFromControls();
+    updateValuesFromControls();
 }
 
 void AnimationManagementWidget::processFrameIsWritten()
@@ -298,7 +298,7 @@ void AnimationManagementWidget::setPngFilename(QString fileName)
     emit currentPngFilenameChanged(fileName);
 }
 
-void AnimationManagementWidget::updateStartValueFromControls()
+void AnimationManagementWidget::updateValuesFromControls()
 {
     xAnimation.setStartValue(firstPointXDoubleSpinBox->value());
     yAnimation.setStartValue(firstPointYDoubleSpinBox->value());
@@ -306,10 +306,7 @@ void AnimationManagementWidget::updateStartValueFromControls()
     xRotAnimation.setStartValue(firstPointRotXDoubleSpinBox->value());
     yRotAnimation.setStartValue(firstPointRotYDoubleSpinBox->value());
     zRotAnimation.setStartValue(firstPointRotZDoubleSpinBox->value());
-}
 
-void AnimationManagementWidget::updateEndValueFromControls()
-{
     xAnimation.setEndValue(secondPointXDoubleSpinBox->value());
     yAnimation.setEndValue(secondPointYDoubleSpinBox->value());
     zAnimation.setEndValue(secondPointZDoubleSpinBox->value());
@@ -332,12 +329,22 @@ void AnimationManagementWidget::setDuration(int msec)
 
 void AnimationManagementWidget::setCurrentTime(int msec)
 {
+    qDebug() << "void AnimationManagementWidget::setCurrentTime(int msec)";
+    qDebug() << "msec:"  << msec;
     xAnimation.setCurrentTime(msec);
     yAnimation.setCurrentTime(msec);
     zAnimation.setCurrentTime(msec);
     xRotAnimation.setCurrentTime(msec);
     yRotAnimation.setCurrentTime(msec);
     zRotAnimation.setCurrentTime(msec);
+
+
+    qDebug() << "xAnimation.currentValue().toDouble():"  << xAnimation.currentValue().toDouble();
+    qDebug() << "yAnimation.currentValue().toDouble():"  << yAnimation.currentValue().toDouble();
+    qDebug() << "zAnimation.currentValue().toDouble():"  << zAnimation.currentValue().toDouble();
+    qDebug() << "xRotAnimation.currentValue().toDouble():"  << xRotAnimation.currentValue().toDouble();
+    qDebug() << "yRotAnimation.currentValue().toDouble():"  << yRotAnimation.currentValue().toDouble();
+    qDebug() << "zRotAnimation.currentValue().toDouble():"  << zRotAnimation.currentValue().toDouble();
 
     currentStateOfAnimationLabel->setText(QString("%1").arg(currentStateOfAnimation->value()));
 
@@ -447,65 +454,78 @@ void AnimationManagementWidget::processSpecifyPngFilename()
 
 void AnimationManagementWidget::processFirstPointXDoubleSpinBoxValueChanged(double value)
 {
-    updateStartValueFromControls();
+    qDebug() << "void AnimationManagementWidget::processFirstPointXDoubleSpinBoxValueChanged(double value)";
+    updateValuesFromControls();
 }
 
 void AnimationManagementWidget::processFirstPointYDoubleSpinBoxValueChanged(double value)
 {
-    updateStartValueFromControls();
+    qDebug() << "void AnimationManagementWidget::processFirstPointYDoubleSpinBoxValueChanged(double value)";
+    updateValuesFromControls();
 }
 
 void AnimationManagementWidget::processFirstPointZDoubleSpinBoxValueChanged(double value)
 {
-    updateStartValueFromControls();
+    qDebug() << "void AnimationManagementWidget::processFirstPointZDoubleSpinBoxValueChanged(double value)";
+    updateValuesFromControls();
 }
 
 void AnimationManagementWidget::processFirstPointRotXDoubleSpinBoxValueChanged(double value)
 {
-    updateStartValueFromControls();
+    qDebug() << "void AnimationManagementWidget::processFirstPointRotXDoubleSpinBoxValueChanged(double value)";
+    updateValuesFromControls();
 }
 
 void AnimationManagementWidget::processFirstPointRotYDoubleSpinBoxValueChanged(double value)
 {
-    updateStartValueFromControls();
+    qDebug() << "void AnimationManagementWidget::processFirstPointRotYDoubleSpinBoxValueChanged(double value)";
+    updateValuesFromControls();
 }
 
 void AnimationManagementWidget::processFirstPointRotZDoubleSpinBoxValueChanged(double value)
 {
-    updateStartValueFromControls();
+    qDebug() << "void AnimationManagementWidget::processFirstPointRotZDoubleSpinBoxValueChanged(double value)";
+    updateValuesFromControls();
 }
 
 void AnimationManagementWidget::processSecondPointXDoubleSpinBoxValueChanged(double value)
 {
-    updateEndValueFromControls();
+    qDebug() << "void AnimationManagementWidget::processSecondPointXDoubleSpinBoxValueChanged(double value)";
+    updateValuesFromControls();
 }
 
 void AnimationManagementWidget::processSecondPointYDoubleSpinBoxValueChanged(double value)
 {
-    updateEndValueFromControls();
+    qDebug() << "void AnimationManagementWidget::processSecondPointYDoubleSpinBoxValueChanged(double value)";
+    updateValuesFromControls();
 }
 
 void AnimationManagementWidget::processSecondPointZDoubleSpinBoxValueChanged(double value)
 {
-    updateEndValueFromControls();
+    qDebug() << "void AnimationManagementWidget::processSecondPointZDoubleSpinBoxValueChanged(double value)";
+    updateValuesFromControls();
 }
 
 void AnimationManagementWidget::processSecondPointRotXDoubleSpinBoxValueChanged(double value)
 {
-    updateEndValueFromControls();
+    qDebug() << "void AnimationManagementWidget::processSecondPointRotXDoubleSpinBoxValueChanged(double value)";
+    updateValuesFromControls();
 }
 
 void AnimationManagementWidget::processSecondPointRotYDoubleSpinBoxValueChanged(double value)
 {
-    updateEndValueFromControls();
+    qDebug() << "void AnimationManagementWidget::processSecondPointRotYDoubleSpinBoxValueChanged(double value)";
+    updateValuesFromControls();
 }
 
 void AnimationManagementWidget::processSecondPointRotZDoubleSpinBoxValueChanged(double value)
 {
-    updateEndValueFromControls();
+    qDebug() << "void AnimationManagementWidget::processSecondPointRotZDoubleSpinBoxValueChanged(double value)";
+    updateValuesFromControls();
 }
 
 void AnimationManagementWidget::processPngWrite()
 {
+    qDebug() << "void AnimationManagementWidget::processPngWrite()";
     emit pngWritingRequested();
 }

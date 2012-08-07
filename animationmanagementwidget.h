@@ -105,8 +105,8 @@ public slots:
     void setPngFilename(QString fileName);
 
 private slots:
-    void updateStartValueFromControls();
-    void updateEndValueFromControls();
+    void updateValuesFromControls();
+
     void setDuration(int msec);
     void setCurrentTime(int msec);
     void processAnimationTrigger();
