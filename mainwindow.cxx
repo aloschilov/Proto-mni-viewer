@@ -74,6 +74,7 @@ MainWindow::MainWindow(QWidget *parent)
     lookupTableSelectionDockWidget = new QDockWidget(tr("Lookup table properties"), this);
     QScrollArea *lookupTableSelectionScrollArea = new QScrollArea;
     lookupTableSelectionScrollArea->setWidget(lookupTableSelectionWidget);
+    lookupTableSelectionScrollArea->setWidgetResizable(true);
     lookupTableSelectionDockWidget->setWidget(lookupTableSelectionScrollArea);
     lookupTableSelectionDockWidget->setAllowedAreas(Qt::RightDockWidgetArea | Qt::LeftDockWidgetArea);
     lookupTableSelectionDockWidget->setVisible(true);
