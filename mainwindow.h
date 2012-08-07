@@ -63,7 +63,6 @@ private slots:
 
     void setFlatShadingModel();
     void setGouraudShadingModel();
-    void setPhongShadingModel();
 
     void processSphereWidgetInteractionEvent(vtkObject*, unsigned long, void*, void*, vtkCommand*);
     void processMouseMoveEvent(vtkObject*, unsigned long, void*, void*, vtkCommand*);

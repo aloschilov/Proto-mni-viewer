@@ -8,16 +8,15 @@ ShadingModelSelectionWidget::ShadingModelSelectionWidget(QWidget *parent) :
     QGroupBox* simpleShadingModelsGroupBox = new QGroupBox();
     simpleShadingModelsGroupBox->setTitle(tr("Select pre-defined shading model."));
 
-    flatShadingModelRadioButton = new QRadioButton(tr("Flat"), simpleShadingModelsGroupBox);
     gouraundShadingModelRadioButton = new QRadioButton(tr("Gouraud"), simpleShadingModelsGroupBox);
-    phongShadingModelRadioButton = new QRadioButton(tr("Phong"), simpleShadingModelsGroupBox);
+    flatShadingModelRadioButton = new QRadioButton(tr("Flat"), simpleShadingModelsGroupBox);
 
-    flatShadingModelRadioButton->setChecked(true);
+    gouraundShadingModelRadioButton->setChecked(true);
 
     QVBoxLayout *simpleShadingModelsGroupBoxLayout = new QVBoxLayout();
-    simpleShadingModelsGroupBoxLayout->addWidget(flatShadingModelRadioButton);
     simpleShadingModelsGroupBoxLayout->addWidget(gouraundShadingModelRadioButton);
-    simpleShadingModelsGroupBoxLayout->addWidget(phongShadingModelRadioButton);
+    simpleShadingModelsGroupBoxLayout->addWidget(flatShadingModelRadioButton);
+
 
     simpleShadingModelsGroupBox->setLayout(simpleShadingModelsGroupBoxLayout);
 
@@ -32,8 +31,6 @@ ShadingModelSelectionWidget::ShadingModelSelectionWidget(QWidget *parent) :
             this, SLOT(processModelChanged()));
     connect(gouraundShadingModelRadioButton, SIGNAL(clicked()),
             this, SLOT(processModelChanged()));
-    connect(phongShadingModelRadioButton, SIGNAL(clicked()),
-            this, SLOT(processModelChanged()));
 }
 
 void ShadingModelSelectionWidget::processModelChanged()
@@ -44,8 +41,5 @@ void ShadingModelSelectionWidget::processModelChanged()
     } else if (gouraundShadingModelRadioButton->isChecked())
     {
         emit shadingModelChangedToGouraud();
-    } else if (phongShadingModelRadioButton->isChecked())
-    {
-        emit shadingModelChangedToPhong();
     }
 }

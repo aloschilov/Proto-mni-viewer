@@ -14,7 +14,6 @@ public:
 signals:
     void shadingModelChangedToFlat();
     void shadingModelChangedToGouraud();
-    void shadingModelChangedToPhong();
 
 public slots:
 
@@ -24,7 +23,6 @@ private slots:
 private:
     QRadioButton *flatShadingModelRadioButton;
     QRadioButton *gouraundShadingModelRadioButton;
-    QRadioButton *phongShadingModelRadioButton;
 };
 
 #endif // SHADINGMODELSELECTIONWIDGET_H

@@ -135,9 +135,7 @@ MainWindow::MainWindow(QWidget *parent)
     connect(shadingModelSelectionWidget, SIGNAL(shadingModelChangedToFlat()),
             this, SLOT(setFlatShadingModel()));
     connect(shadingModelSelectionWidget, SIGNAL(shadingModelChangedToGouraud()),
-            this, SLOT(setGouraudShadingModel()));
-    connect(shadingModelSelectionWidget, SIGNAL(shadingModelChangedToPhong()),
-            this, SLOT(setPhongShadingModel()));
+            this, SLOT(setGouraudShadingModel()));    
     connect(lightingPropertiesWidget->enableLightingCheckbox, SIGNAL(stateChanged(int)),
             this, SLOT(processLightingStateChanged(int)));
     connect(lightingPropertiesWidget->ambientDoubleSpinBox, SIGNAL(valueChanged(double)),
@@ -303,6 +301,11 @@ void MainWindow::initializeVtk()
                          vtkCommand::LeftButtonReleaseEvent,
                          this,
                          SLOT(processLeftButtonReleaseEvent(vtkObject*,ulong,void*,void*,vtkCommand*)));
+
+    lightingPropertiesWidget->ambientDoubleSpinBox->setValue(actor->GetProperty()->GetAmbient());
+    lightingPropertiesWidget->diffuseDoubleSpinBox->setValue(actor->GetProperty()->GetDiffuse());
+    lightingPropertiesWidget->specularDoubleSpinBox->setValue(actor->GetProperty()->GetSpecular());
+    lightingPropertiesWidget->opacityDoubleSpinBox->setValue(actor->GetProperty()->GetOpacity());
 }
 
 void MainWindow::initializeStateMachine()
@@ -834,12 +837,6 @@ void MainWindow::setGouraudShadingModel()
     qvtkWidget->GetRenderWindow()->Render();
 }
 
-void MainWindow::setPhongShadingModel()
-{
-    actor->GetProperty()->SetInterpolationToPhong();
-    qvtkWidget->GetRenderWindow()->Render();
-}
-
 void MainWindow::processSphereWidgetInteractionEvent(vtkObject *caller, unsigned long, void*, void*, vtkCommand*)
 {
     vtkSphereWidget *widget = reinterpret_cast<vtkSphereWidget*>(caller);
@@ -943,13 +940,16 @@ void MainWindow::processLeftButtonPressEvent(vtkObject *caller, unsigned long, v
     if(pointId != -1)
     {
         if(scalars)
-        {
-            double scalarValue;
+        { double scalarValue;
             double color[3];
             scalarValue = scalars->GetTuple1(pointId);
             mapper->GetLookupTable()->GetColor(scalarValue, color);
             cout << "id " << pointId << " (" << p[0] << " " << p[1] << " " << p[2] << ") " << scalarValue <<
                     " (" << color[0] << " " << color[1] << " " << color[2] << ") "  << endl;
+        }
+        else
+        {
+            cout << "id " << pointId << " (" << p[0] << " " << p[1] << " " << p[2] << ") " << endl;
         }
 
         if(isInPaintMode)
@@ -1020,6 +1020,7 @@ void MainWindow::processLightingStateChanged(int state)
 
 void MainWindow::enableLighting()
 {
+    ren->RemoveAllLights();
     ren->AddLight(light);
     qvtkWidget->GetRenderWindow()->Render();
 }
@@ -1040,18 +1041,21 @@ QIcon MainWindow::getIconFilledWithColor(QColor color)
 void MainWindow::processAmbientChanged(double value)
 {
     actor->GetProperty()->SetAmbient(value);
+    //light->SetAmbientColor(value, value, value);
     qvtkWidget->GetRenderWindow()->Render();
 }
 
 void MainWindow::processSpecularChanged(double value)
 {
     actor->GetProperty()->SetSpecular(value);
+    //light->SetSpecularColor(value, value, value);
     qvtkWidget->GetRenderWindow()->Render();
 }
 
 void MainWindow::processDiffuseChanged(double value)
 {
-    actor->GetProperty()->SetDiffuse(value);
+//    actor->GetProperty()->SetDiffuse(value);
+    light->SetDiffuseColor(value, value, value);
     qvtkWidget->GetRenderWindow()->Render();
 }
 
@@ -1334,6 +1338,7 @@ void MainWindow::processPaintModeStateEntered()
     activatePaintModeAction->setEnabled(false);
 
     isInPaintMode = true;
+    leftMouseButtonIsPressed = false;
 
     markedAreaPinActor->SetVisibility(true);
 }

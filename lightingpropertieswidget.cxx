@@ -41,11 +41,11 @@ LightingPropertiesWidget::LightingPropertiesWidget(QWidget *parent) :
     gridLayout->addWidget(diffuseLabel, 1, 0);
     gridLayout->addWidget(diffuseDoubleSpinBox, 1, 1);
 
-    gridLayout->addWidget(opacityLabel, 2, 0);
-    gridLayout->addWidget(opacityDoubleSpinBox, 2, 1);
+    gridLayout->addWidget(specularLabel, 2, 0);
+    gridLayout->addWidget(specularDoubleSpinBox, 2, 1);
 
-    gridLayout->addWidget(specularLabel, 3, 0);
-    gridLayout->addWidget(specularDoubleSpinBox, 3, 1);
+    gridLayout->addWidget(opacityLabel, 3, 0);
+    gridLayout->addWidget(opacityDoubleSpinBox, 3, 1);
 
     gridLayout->addWidget(enableLightingCheckbox, 4, 0, 1, 2);
     gridLayout->addWidget(lightingWidgetVisibilityCheckbox, 5, 0, 1, 2);
