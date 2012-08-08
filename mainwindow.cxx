@@ -136,7 +136,7 @@ MainWindow::MainWindow(QWidget *parent)
     connect(shadingModelSelectionWidget, SIGNAL(shadingModelChangedToFlat()),
             this, SLOT(setFlatShadingModel()));
     connect(shadingModelSelectionWidget, SIGNAL(shadingModelChangedToGouraud()),
-            this, SLOT(setGouraudShadingModel()));    
+            this, SLOT(setGouraudShadingModel()));
     connect(lightingPropertiesWidget->enableLightingCheckbox, SIGNAL(stateChanged(int)),
             this, SLOT(processLightingStateChanged(int)));
     connect(lightingPropertiesWidget->ambientDoubleSpinBox, SIGNAL(valueChanged(double)),
@@ -402,9 +402,9 @@ void MainWindow::showEvent ( QShowEvent * event )
             o[1] = rotYDouble;
             o[2] = rotZDouble;
 
+            mniObjectTransfrom->RotateZ(o[2]);
             mniObjectTransfrom->RotateX(o[0]);
             mniObjectTransfrom->RotateY(o[1]);
-            mniObjectTransfrom->RotateZ(o[2]);
 
         }
     }
@@ -1055,7 +1055,7 @@ void MainWindow::processSpecularChanged(double value)
 
 void MainWindow::processDiffuseChanged(double value)
 {
-//    actor->GetProperty()->SetDiffuse(value);
+    //    actor->GetProperty()->SetDiffuse(value);
     light->SetDiffuseColor(value, value, value);
     qvtkWidget->GetRenderWindow()->Render();
 }
