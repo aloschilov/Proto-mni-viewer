@@ -1224,10 +1224,9 @@ void MainWindow::processCurrentTimeChanged()
     qDebug() << "o[0]:" << o[0];
     qDebug() << "o[1]:" << o[1];
     qDebug() << "o[2]:" << o[2];
-
+    mniObjectTransfrom->RotateZ(animationManagementWidget->getCurrentRotZ());
     mniObjectTransfrom->RotateX(animationManagementWidget->getCurrentRotX());
     mniObjectTransfrom->RotateY(animationManagementWidget->getCurrentRotY());
-    mniObjectTransfrom->RotateZ(animationManagementWidget->getCurrentRotZ());
 
     ren->ResetCameraClippingRange();
     qvtkWidget->GetRenderWindow()->Render();
