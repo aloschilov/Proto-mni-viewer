@@ -21,7 +21,6 @@
 #include <vtkPNGWriter.h>
 
 #include <vtkEventQtSlotConnect.h>
-#include "saveablepolygonalsurfacepointplacer.h"
 #include <vtkTransform.h>
 
 
@@ -159,8 +158,6 @@ private:
     vtkFloatArray *scalars;
     float min;
     float max;
-
-    vtkSmartPointer<SaveablePolygonalSurfacePointPlacer> pointPlacer;
 
     // Vtk objects related to marking surface
 
