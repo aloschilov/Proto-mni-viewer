@@ -1377,10 +1377,9 @@ void MainWindow::processSelectColorForPencil()
     if(color.isValid())
     {
         selectPencilColorToolButton->setIcon(getIconFilledWithColor(color));
+        pencilColor = color;
+        markedAreaPinActor->GetProperty()->SetColor(pencilColor.redF(), pencilColor.greenF(), pencilColor.blueF());
     }
-
-    pencilColor = color;
-    markedAreaPinActor->GetProperty()->SetColor(pencilColor.redF(), pencilColor.greenF(), pencilColor.blueF());
 }
 
 void MainWindow::processSelectBackgroundColor()
