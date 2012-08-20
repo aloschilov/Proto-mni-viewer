@@ -132,7 +132,7 @@ void LookupTableSelectionWidget::processAddCustomColormapToList()
         addLookupTableByImageFilename(pathToColormapFileLineEdit->text());
 
         lookupTablesButtonGroup->addButton(new QRadioButton(pathToColormapFileLineEdit->text()),
-                                                            lookupTablesButtonGroup->buttons().size());
+                                           lookupTablesButtonGroup->buttons().size());
         relayoutColormaps();
     }
 }
@@ -164,8 +164,12 @@ void LookupTableSelectionWidget::processAddCustomDirectRgbToList()
         addDirectRgbColors(pathToRgbFileLineEdit->text());
 
         lookupTablesButtonGroup->addButton(new QRadioButton(pathToRgbFileLineEdit->text()),
-                                                            lookupTablesButtonGroup->buttons().size());
+                                           lookupTablesButtonGroup->buttons().size());
         relayoutColormaps();
+
+
+        pathToRgbFileLineEdit->setText("");
+        addCustomDirectRgbToList->setEnabled(false);
     }
 }
 
@@ -177,6 +181,15 @@ void LookupTableSelectionWidget::openPerPointRgbFile()
                                                     tr("RGB file(*.rgb *.txt)"));
     if(fileName.isEmpty())
     {
+        pathToRgbFileLineEdit->setText("");
+        addCustomDirectRgbToList->setEnabled(false);
+        return;
+    }
+
+    if(validateDirectRgbColorsFile(fileName) == false)
+    {
+        pathToRgbFileLineEdit->setText("");
+        addCustomDirectRgbToList->setEnabled(false);
         return;
     }
 
@@ -239,7 +252,7 @@ void LookupTableSelectionWidget::addDirectRgbColors(const QString &filename)
     // Setup colors
 
     vtkSmartPointer<vtkUnsignedCharArray> colors =
-      vtkSmartPointer<vtkUnsignedCharArray>::New();
+            vtkSmartPointer<vtkUnsignedCharArray>::New();
     colors->SetNumberOfComponents(4);
     colors->SetName ("Colors");
 
@@ -263,6 +276,29 @@ void LookupTableSelectionWidget::addDirectRgbColors(const QString &filename)
     }
 
     perVertexColors[insertPoint++] = colors;
+}
+
+bool LookupTableSelectionWidget::validateDirectRgbColorsFile(const QString &filename)
+{
+    QFile file(filename);
+    if (!file.open(QIODevice::ReadOnly | QIODevice::Text))
+        return false;
+
+    QRegExp rx("([-+]?(\\d+(\\.\\d*)?|\\.\\d+)([eE][-+]?\\d+)?)\\s+"
+               "([-+]?(\\d+(\\.\\d*)?|\\.\\d+)([eE][-+]?\\d+)?)\\s+"
+               "([-+]?(\\d+(\\.\\d*)?|\\.\\d+)([eE][-+]?\\d+)?)\\s+"
+               "([-+]?(\\d+(\\.\\d*)?|\\.\\d+)([eE][-+]?\\d+)?)\\s*");
+
+    while (!file.atEnd())
+    {
+        QByteArray line = file.readLine();
+
+        if (rx.exactMatch(line) == false)
+        {
+            return false;
+        }
+    }
+    return true;
 }
 
 void LookupTableSelectionWidget::addLookupTableByImageFilename(const QString &filename)

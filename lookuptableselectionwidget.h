@@ -60,6 +60,8 @@ private:
     void addLookupTableByImageFilename(const QString &filename);
     void addDirectRgbColors(const QString &filename);
 
+    bool validateDirectRgbColorsFile(const QString &filename);
+
     QGroupBox *createCustomColormapGroupBox();
     QGroupBox *createCustomDirectRgbGroupBox();
     QGroupBox *createScalarsGroupBox();
