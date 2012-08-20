@@ -190,6 +190,10 @@ void LookupTableSelectionWidget::openPerPointRgbFile()
     {
         pathToRgbFileLineEdit->setText("");
         addCustomDirectRgbToList->setEnabled(false);
+
+        QMessageBox::warning(this, tr("MNI object viewer"),
+                             tr("The format of per vertex RGB file is incorrect."),
+                             QMessageBox::Ok);
         return;
     }
 
