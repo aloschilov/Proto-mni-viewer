@@ -18,6 +18,7 @@ QT_FORWARD_DECLARE_CLASS(QVBoxLayout)
 QT_FORWARD_DECLARE_CLASS(QCheckBox)
 QT_FORWARD_DECLARE_CLASS(QDoubleSpinBox)
 QT_FORWARD_DECLARE_CLASS(QPushButton)
+QT_FORWARD_DECLARE_CLASS(GradientDialog)
 
 
 
@@ -55,8 +56,10 @@ public slots:
 private slots:
     void processMinValueChanged(double value);
     void processMaxValueChanged(double value);
+    void chooseLookupTableAsGradientButtonClicked();
 
 private:
+    void addGradientLookupTable();
     void addLookupTableByImageFilename(const QString &filename);
     void addDirectRgbColors(const QString &filename);
 
@@ -86,6 +89,8 @@ private:
     QLineEdit *pathToScalarsLineEdit;
     QToolButton *specifyPathToScalars;
 
+    QPushButton *chooseLookupTableAsGradientButton;
+
     QDoubleSpinBox *minValue;
     QDoubleSpinBox *maxValue;
 
@@ -97,6 +102,8 @@ private:
     double defaultMaxValue;
 
     QPushButton *resetRangeToDefaultButton;
+
+    GradientDialog *gradientDialog;
 };
 
 #endif // LOOKUPTABLESELECTIONWIDGET_H
