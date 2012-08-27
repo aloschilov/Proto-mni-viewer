@@ -414,7 +414,7 @@ QImage GradientRenderer::paintToPixmap()
 
     QGradient g;
 
-    g = QLinearGradient(QPointF(0,0), QPointF(0,1023));
+    g = QLinearGradient(QPointF(0,0), QPointF(1023,0));
 
     for (int i=0; i<m_stops.size(); ++i)
         g.setColorAt(m_stops.at(i).first, m_stops.at(i).second);
