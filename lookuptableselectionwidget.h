@@ -57,11 +57,16 @@ private slots:
     void processMinValueChanged(double value);
     void processMaxValueChanged(double value);
     void chooseLookupTableAsGradientButtonClicked();
+    void saveCurrentLookupTableAsDefaultClicked();
 
 private:
+    void addDefaultLookupTable();
     void addGradientLookupTable();
     void addLookupTableByImageFilename(const QString &filename);
     void addDirectRgbColors(const QString &filename);
+
+    QVariantList toVariantList(const QVector<double> &vectorToConvert);
+    QVector<double> fromVariantList(const QVariantList &listToConvert);
 
     bool validateDirectRgbColorsFile(const QString &filename);
 
@@ -90,6 +95,7 @@ private:
     QToolButton *specifyPathToScalars;
 
     QPushButton *chooseLookupTableAsGradientButton;
+    QPushButton *saveCurrentLookupTableAsDefault;
 
     QDoubleSpinBox *minValue;
     QDoubleSpinBox *maxValue;
@@ -104,6 +110,8 @@ private:
     QPushButton *resetRangeToDefaultButton;
 
     GradientDialog *gradientDialog;
+
+    QSettings settings;
 };
 
 #endif // LOOKUPTABLESELECTIONWIDGET_H

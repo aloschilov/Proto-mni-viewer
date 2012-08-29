@@ -5,8 +5,11 @@
 int main(int argc, char** argv)
 {
     QVTKApplication app(argc, argv);
-    MainWindow w;
 
+    QCoreApplication::setOrganizationName("G");
+    QCoreApplication::setApplicationName("MNI objects viewer");
+
+    MainWindow w;
     w.show();
 
     return app.exec();

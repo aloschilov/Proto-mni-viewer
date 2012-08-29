@@ -16,24 +16,26 @@ LookupTableSelectionWidget::LookupTableSelectionWidget(QWidget *parent) :
 
     insertPoint =  0;
 
+    lookupTablesButtonGroup->addButton(new QRadioButton(tr("Default lookup table")), insertPoint);
+    addDefaultLookupTable();
+
+    lookupTablesButtonGroup->addButton(new QRadioButton(tr("Gradient")), insertPoint);
     addGradientLookupTable();
-    insertPoint++;
-    lookupTablesButtonGroup->addButton(new QRadioButton(tr("Gradient")), 0);
 
+    lookupTablesButtonGroup->addButton(new QRadioButton(tr("Fire")), insertPoint);
     addLookupTableByImageFilename(":colormaps/fire.bmp");
-    lookupTablesButtonGroup->addButton(new QRadioButton(tr("Fire")), 1);
 
+    lookupTablesButtonGroup->addButton(new QRadioButton(tr("Grayscale")), insertPoint);
     addLookupTableByImageFilename(":colormaps/grayscale.bmp");
-    lookupTablesButtonGroup->addButton(new QRadioButton(tr("Grayscale")), 2);
 
+    lookupTablesButtonGroup->addButton(new QRadioButton(tr("Rainbow")), insertPoint);
     addLookupTableByImageFilename(":colormaps/rainbow.bmp");
-    lookupTablesButtonGroup->addButton(new QRadioButton(tr("Rainbow")),3);
 
+    lookupTablesButtonGroup->addButton(new QRadioButton(tr("Royal")), insertPoint);
     addLookupTableByImageFilename(":colormaps/royal.bmp");
-    lookupTablesButtonGroup->addButton(new QRadioButton(tr("Royal")),4);
 
-    addLookupTableByImageFilename(":colormaps/topograph.bmp");
-    lookupTablesButtonGroup->addButton(new QRadioButton(tr("Topograph")),5);
+    lookupTablesButtonGroup->addButton(new QRadioButton(tr("Topograph")), insertPoint);
+    addLookupTableByImageFilename(":colormaps/royal.bmp");
 
     QGroupBox *customColormapGroupBox = createCustomColormapGroupBox();
     QGroupBox *customDirectRgbGroupBox = createCustomDirectRgbGroupBox();
@@ -52,10 +54,12 @@ LookupTableSelectionWidget::LookupTableSelectionWidget(QWidget *parent) :
     }
 
     chooseLookupTableAsGradientButton = new QPushButton(tr("Customize gradient"));
+    saveCurrentLookupTableAsDefault = new QPushButton(tr("Save lookup table as default"));
 
     mainLayout->addWidget(customColormapGroupBox);
     mainLayout->addWidget(customDirectRgbGroupBox);
     mainLayout->addWidget(chooseLookupTableAsGradientButton);
+    mainLayout->addWidget(saveCurrentLookupTableAsDefault);
     mainLayout->addWidget(showLegendCheckbox);
 
     minValue = new QDoubleSpinBox();
@@ -102,6 +106,8 @@ LookupTableSelectionWidget::LookupTableSelectionWidget(QWidget *parent) :
             this, SLOT(resetRangeToDefault()));
     connect(chooseLookupTableAsGradientButton, SIGNAL(clicked()),
             this, SLOT(chooseLookupTableAsGradientButtonClicked()));
+    connect(saveCurrentLookupTableAsDefault, SIGNAL(clicked()),
+            this, SLOT(saveCurrentLookupTableAsDefaultClicked()));
 
     defaultMaxValue = 1.0;
     defaultMinValue = 0.0;
@@ -278,6 +284,11 @@ void LookupTableSelectionWidget::chooseLookupTableAsGradientButtonClicked()
     }
 }
 
+void LookupTableSelectionWidget::saveCurrentLookupTableAsDefaultClicked()
+{
+
+}
+
 void LookupTableSelectionWidget::addDirectRgbColors(const QString &filename)
 {
     ifstream in(filename.toStdString().c_str(), ios::in);
@@ -334,6 +345,54 @@ bool LookupTableSelectionWidget::validateDirectRgbColorsFile(const QString &file
     return true;
 }
 
+void LookupTableSelectionWidget::addDefaultLookupTable()
+{
+    if(settings.allKeys().contains("default_lookup_table"))
+    {
+        QVector<double> allInRowColorComponents = fromVariantList(settings.value("default_lookup_table").toList());
+        int width = allInRowColorComponents.size()/3;
+
+        vtkSmartPointer<vtkLookupTable > lookupTableToAdd = vtkSmartPointer<vtkLookupTable >::New();
+        lookupTableToAdd->SetNumberOfTableValues(width);
+
+        for(int i=0; i<width; ++i)
+        {
+            QColor color(imageToPrepareScalePoints.pixel(i,0));
+            lookupTableToAdd->SetTableValue(i, allInRowColorComponents[i*3+0], allInRowColorComponents[i*3+1], allInRowColorComponents[i*3+2]);
+        }
+
+        lookupTableToAdd->Build();
+
+        lookupTables[insertPoint++] = lookupTableToAdd.GetPointer();
+    }
+}
+
+QVariantList LookupTableSelectionWidget::toVariantList(const QVector<double> &vectorToConvert)
+{
+    QVariantList listToReturn;
+
+    foreach (const double &intValue, vectorToConvert)
+    {
+        listToReturn << QVariant(intValue);
+    }
+
+    return listToReturn;
+}
+
+QVector<double> LookupTableSelectionWidget::fromVariantList(const QVariantList &listToConvert)
+{
+    QVector<double> vectorToReturn;
+
+    int sizeOfVariantList = listToConvert.size();
+
+    for(int i=0; i<sizeOfVariantList; ++i)
+    {
+        vectorToReturn.append(listToConvert.at(i).toDouble());
+    }
+
+    return vectorToReturn;
+}
+
 void LookupTableSelectionWidget::addGradientLookupTable()
 {
     QImage imageToPrepareScalePoints = gradientDialog->getGradientImage();
@@ -350,7 +409,7 @@ void LookupTableSelectionWidget::addGradientLookupTable()
 
     lookupTableToAdd->Build();
 
-    lookupTables[0] = lookupTableToAdd.GetPointer();
+    lookupTables[insertPoint++] = lookupTableToAdd.GetPointer();
 }
 
 void LookupTableSelectionWidget::addLookupTableByImageFilename(const QString &filename)
