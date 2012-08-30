@@ -3,6 +3,7 @@
 
 #include <QWidget>
 #include <QMap>
+#include <QtCore>
 
 #include <vtkSmartPointer.h>
 #include <vtkLookupTable.h>
