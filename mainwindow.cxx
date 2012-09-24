@@ -402,10 +402,9 @@ void MainWindow::showEvent ( QShowEvent * event )
             o[1] = rotYDouble;
             o[2] = rotZDouble;
 
-            mniObjectTransfrom->RotateZ(o[2]);
             mniObjectTransfrom->RotateX(o[0]);
             mniObjectTransfrom->RotateY(o[1]);
-
+            mniObjectTransfrom->RotateZ(o[2]);
         }
     }
 
