@@ -784,7 +784,7 @@ void MainWindow::createActions()
 
     // Create save transformation action
 
-    saveTransformationAction = new QAction(tr("Save tranformation"), this);
+    saveTransformationAction = new QAction(tr("Save transformation"), this);
 
     connect(selectPencilColorToolButton, SIGNAL(clicked()),
             this, SLOT(processSelectColorForPencil()));
