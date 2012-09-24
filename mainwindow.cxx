@@ -350,6 +350,76 @@ void MainWindow::showEvent ( QShowEvent * event )
 
     mniObjectTransfrom->Identity();
 
+    // Parse --object-position option
+
+    for ( int i = 0; i < num; i++ ) {
+        QString s = qApp->argv()[i] ;
+        if ( s.startsWith( "--object-position" ) )
+        {
+            qDebug() << "parsed --object-position";
+
+            if(num - (i+1) < 3)
+            {
+                qDebug() << "Insufficient number of components specified for object position.";
+                return;
+            }
+
+            bool parsingResult;
+
+            ++i;
+            QString x = qApp->argv()[i];
+            double xDouble = x.toDouble(&parsingResult);
+
+            if(parsingResult == false)
+            {
+                qDebug() << "Wrong 1-st parameter is specified for object position.";
+                return;
+            }
+
+            ++i;
+            QString y = qApp->argv()[i];
+            double yDouble = y.toDouble(&parsingResult);
+
+            if(parsingResult == false)
+            {
+                qDebug() << "Wrong 2-nd parameter is specified for object position.";
+                return;
+            }
+
+            ++i;
+            QString z = qApp->argv()[i];
+            double zDouble = z.toDouble(&parsingResult);
+
+            if(parsingResult == false)
+            {
+                qDebug() << "Wrong 3-rd parameter is specified for object position.";
+                return;
+            }
+
+            double pos[3];
+            pos[0] = xDouble;
+            pos[1] = yDouble;
+            pos[2] = zDouble;
+
+            mniObjectTransfrom->Translate(xDouble, yDouble, zDouble);
+
+            std::stringstream ss;
+            vtkSmartPointer<vtkMatrix4x4> matrixCurrentState = vtkSmartPointer<vtkMatrix4x4>::New();
+
+            mniObjectTransfrom->GetMatrix(matrixCurrentState);
+            ss << "mniObjectTransfrom->Translate(xDouble, yDouble, zDouble): " << xDouble << yDouble << zDouble <<endl;
+            matrixCurrentState->Print(ss);
+
+            mniObjectTransfrom->GetPosition(pos);
+
+            qDebug() << QString::fromStdString(ss.str());
+
+            qDebug() << "pos[0]:" << pos[0];
+            qDebug() << "pos[1]:" << pos[1];
+            qDebug() << "pos[2]:" << pos[2];
+        }
+    }
+
     // Parse --object-rotation option
 
     for ( int i = 0; i < num; i++ )
@@ -402,67 +472,35 @@ void MainWindow::showEvent ( QShowEvent * event )
             o[1] = rotYDouble;
             o[2] = rotZDouble;
 
+            std::stringstream ss;
+
+            vtkSmartPointer<vtkMatrix4x4> matrixCurrentState = vtkSmartPointer<vtkMatrix4x4>::New();
+
+
+            mniObjectTransfrom->GetMatrix(matrixCurrentState);
+            ss << "mniObjectTransfrom->Identity();" << endl;
+            matrixCurrentState->Print(ss);
+
             mniObjectTransfrom->RotateX(o[0]);
+            mniObjectTransfrom->GetMatrix(matrixCurrentState);
+            ss << "mniObjectTransfrom->RotateX(o[0]): " << o[0] << endl;
+            matrixCurrentState->Print(ss);
+
             mniObjectTransfrom->RotateY(o[1]);
+            mniObjectTransfrom->GetMatrix(matrixCurrentState);
+            ss << "mniObjectTransfrom->RotateY(o[1]): " << o[1] << endl;
+            matrixCurrentState->Print(ss);
+
             mniObjectTransfrom->RotateZ(o[2]);
+            mniObjectTransfrom->GetMatrix(matrixCurrentState);
+            ss << "mniObjectTransfrom->RotateY(o[2]): " << o[2] << endl;
+            matrixCurrentState->Print(ss);
+
+            qDebug() << QString::fromStdString(ss.str());
         }
     }
 
-    // Parse --object-position option
 
-    for ( int i = 0; i < num; i++ ) {
-        QString s = qApp->argv()[i] ;
-        if ( s.startsWith( "--object-position" ) )
-        {
-            qDebug() << "parsed --object-position";
-
-            if(num - (i+1) < 3)
-            {
-                qDebug() << "Insufficient number of components specified for object position.";
-                return;
-            }
-
-            bool parsingResult;
-
-            ++i;
-            QString x = qApp->argv()[i];
-            double xDouble = x.toDouble(&parsingResult);
-
-            if(parsingResult == false)
-            {
-                qDebug() << "Wrong 1-st parameter is specified for object position.";
-                return;
-            }
-
-            ++i;
-            QString y = qApp->argv()[i];
-            double yDouble = y.toDouble(&parsingResult);
-
-            if(parsingResult == false)
-            {
-                qDebug() << "Wrong 2-nd parameter is specified for object position.";
-                return;
-            }
-
-            ++i;
-            QString z = qApp->argv()[i];
-            double zDouble = z.toDouble(&parsingResult);
-
-            if(parsingResult == false)
-            {
-                qDebug() << "Wrong 3-rd parameter is specified for object position.";
-                return;
-            }
-
-            double pos[3];
-            pos[0] = xDouble;
-            pos[1] = yDouble;
-            pos[2] = zDouble;
-
-            mniObjectTransfrom->Translate(pos);
-
-        }
-    }
 
     // Parse --object-to-load option
 
