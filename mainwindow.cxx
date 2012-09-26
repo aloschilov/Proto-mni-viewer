@@ -502,6 +502,13 @@ void MainWindow::showEvent ( QShowEvent * event )
             ss << "mniObjectTransfrom->Identity();" << endl;
             matrixCurrentState->Print(ss);
 
+            // Rot(y) Rot(x) Rot (z)
+
+            mniObjectTransfrom->RotateZ(o[2]);
+            mniObjectTransfrom->GetMatrix(matrixCurrentState);
+            ss << "mniObjectTransfrom->RotateY(o[2]): " << o[2] << endl;
+            matrixCurrentState->Print(ss);
+
             mniObjectTransfrom->RotateX(o[0]);
             mniObjectTransfrom->GetMatrix(matrixCurrentState);
             ss << "mniObjectTransfrom->RotateX(o[0]): " << o[0] << endl;
@@ -512,10 +519,9 @@ void MainWindow::showEvent ( QShowEvent * event )
             ss << "mniObjectTransfrom->RotateY(o[1]): " << o[1] << endl;
             matrixCurrentState->Print(ss);
 
-            mniObjectTransfrom->RotateZ(o[2]);
-            mniObjectTransfrom->GetMatrix(matrixCurrentState);
-            ss << "mniObjectTransfrom->RotateY(o[2]): " << o[2] << endl;
-            matrixCurrentState->Print(ss);
+
+
+
 
             qDebug() << QString::fromStdString(ss.str());
         }
