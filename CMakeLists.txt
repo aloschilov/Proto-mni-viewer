@@ -32,8 +32,8 @@ INCLUDE_DIRECTORIES(
 INCLUDE_DIRECTORIES(${VTK_TDX_INCLUDE_PATH})
 
 # Set your files and resources here  
-SET(ProtoMniViewerSrcs main.cxx mainwindow.cxx lookuptableselectionwidget.cxx shadingmodelselectionwidget.cxx lightingpropertieswidget.cxx surfaceselectionwidget.cxx gradients.cxx hoverpoints.cxx animationmanagementwidget.cxx jsoncpp/src/lib_json/json_reader.cpp jsoncpp/src/lib_json/json_value.cpp jsoncpp/src/lib_json/json_writer.cpp)
-SET(ProtoMniViewerHeaders mainwindow.h lookuptableselectionwidget.h shadingmodelselectionwidget.h lightingpropertieswidget.h surfaceselectionwidget.h animationmanagementwidget.h gradients.h hoverpoints.h)
+SET(ProtoMniViewerSrcs main.cxx mainwindow.cxx lookuptableselectionwidget.cxx shadingmodelselectionwidget.cxx lightingpropertieswidget.cxx surfaceselectionwidget.cxx gradients.cxx hoverpoints.cxx animationmanagementwidget.cxx textpropertyeditor.cxx jsoncpp/src/lib_json/json_reader.cpp jsoncpp/src/lib_json/json_value.cpp jsoncpp/src/lib_json/json_writer.cpp)
+SET(ProtoMniViewerHeaders mainwindow.h lookuptableselectionwidget.h shadingmodelselectionwidget.h lightingpropertieswidget.h surfaceselectionwidget.h animationmanagementwidget.h gradients.h hoverpoints.h textpropertyeditor.h)
 SET(ProtoMniViewerResources protomniviewer.qrc)
 
 # The rest should just work (sure...)

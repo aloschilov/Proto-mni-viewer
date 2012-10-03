@@ -8,6 +8,9 @@
 #include <vtkSmartPointer.h>
 #include <vtkLookupTable.h>
 #include <vtkFloatArray.h>
+#include <vtkTextProperty.h>
+
+#include "textpropertyeditor.h"
 
 #include <vector>
 
@@ -30,6 +33,7 @@ public:
     explicit LookupTableSelectionWidget(QWidget *parent = 0);
 
     vtkSmartPointer<vtkLookupTable > getCurrentLookupTable();
+    vtkSmartPointer<vtkTextProperty> getCurrentLabelTextProperty() {return textPropertyEditor->getTextProperty();}
 
 signals:
     void currentLookupTableChanged(vtkSmartPointer<vtkLookupTable > lookupTable);
@@ -37,6 +41,7 @@ signals:
     void showLegend();
     void hideLegend();
     void scalarRangeChanged(double min, double max);
+    void currentLabelTextPropertyChanged(vtkSmartPointer<vtkTextProperty>);
 
 public slots:
 
@@ -111,6 +116,7 @@ private:
     QPushButton *resetRangeToDefaultButton;
 
     GradientDialog *gradientDialog;
+    TextPropertyEditor *textPropertyEditor;
 
     QSettings settings;
 };

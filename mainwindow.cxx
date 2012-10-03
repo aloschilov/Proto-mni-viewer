@@ -44,6 +44,7 @@
 #include "lightingpropertieswidget.h"
 #include "surfaceselectionwidget.h"
 #include "animationmanagementwidget.h"
+#include "textpropertyeditor.h"
 
 
 #define VTK_CREATE(type, name) \
@@ -132,6 +133,8 @@ MainWindow::MainWindow(QWidget *parent)
             this, SLOT(showLegend()));
     connect(lookupTableSelectionWidget, SIGNAL(hideLegend()),
             this, SLOT(hideLegend()));
+    connect(lookupTableSelectionWidget, SIGNAL(currentLabelTextPropertyChanged(vtkSmartPointer<vtkTextProperty>)),
+            this, SLOT(updateScalarBarActorLabelTextProperty(vtkSmartPointer<vtkTextProperty>)));
 
     connect(shadingModelSelectionWidget, SIGNAL(shadingModelChangedToFlat()),
             this, SLOT(setFlatShadingModel()));
@@ -183,6 +186,8 @@ MainWindow::MainWindow(QWidget *parent)
 
     connect(animationManagementWidget, SIGNAL(tranformationResetionRequested()),
             this, SLOT(processTransformationResetion()));
+
+    updateScalarBarActorLabelTextProperty(lookupTableSelectionWidget->getCurrentLabelTextProperty());
 }
 
 void MainWindow::initializeVtk()
@@ -744,6 +749,18 @@ void MainWindow::updateDirectRgbColors(vtkSmartPointer<vtkUnsignedCharArray> col
 
     reader->GetOutput()->GetPointData()->SetScalars(colors);
 
+    qvtkWidget->GetRenderWindow()->Render();
+}
+
+void MainWindow::updateScalarBarActorTitleTextProperty(vtkSmartPointer<vtkTextProperty> textProperty)
+{
+    scalar_bar->SetTitleTextProperty(textProperty);
+    qvtkWidget->GetRenderWindow()->Render();
+}
+
+void MainWindow::updateScalarBarActorLabelTextProperty(vtkSmartPointer<vtkTextProperty> textProperty)
+{
+    scalar_bar->SetLabelTextProperty(textProperty);
     qvtkWidget->GetRenderWindow()->Render();
 }
 

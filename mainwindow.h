@@ -59,6 +59,8 @@ private slots:
 
     void updateLookupTable(vtkSmartPointer<vtkLookupTable> lookupTable);
     void updateDirectRgbColors(vtkSmartPointer<vtkUnsignedCharArray> colors);
+    void updateScalarBarActorTitleTextProperty(vtkSmartPointer<vtkTextProperty> textProperty);
+    void updateScalarBarActorLabelTextProperty(vtkSmartPointer<vtkTextProperty> textProperty);
 
     void setFlatShadingModel();
     void setGouraudShadingModel();

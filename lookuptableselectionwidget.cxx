@@ -90,7 +90,10 @@ LookupTableSelectionWidget::LookupTableSelectionWidget(QWidget *parent) :
     resetRangeToDefaultButton = new QPushButton(tr("Reset range"));
     mainLayout->addWidget(resetRangeToDefaultButton);
 
+    textPropertyEditor = new TextPropertyEditor(QString("legend"));
 
+    mainLayout->addWidget(textPropertyEditor);
+    
     mainLayout->addStretch();
     setLayout(mainLayout);
 
@@ -117,6 +120,8 @@ LookupTableSelectionWidget::LookupTableSelectionWidget(QWidget *parent) :
             this, SLOT(chooseLookupTableAsGradientButtonClicked()));
     connect(saveCurrentLookupTableAsDefault, SIGNAL(clicked()),
             this, SLOT(saveCurrentLookupTableAsDefaultClicked()));
+    connect(textPropertyEditor, SIGNAL(textPropertyChanged(vtkSmartPointer<vtkTextProperty>)),
+            this, SIGNAL(currentLabelTextPropertyChanged(vtkSmartPointer<vtkTextProperty>)));
 
     defaultMaxValue = 1.0;
     defaultMinValue = 0.0;
