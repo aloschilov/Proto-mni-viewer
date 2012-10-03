@@ -220,6 +220,8 @@ AnimationManagementWidget::AnimationManagementWidget(QWidget *parent) :
 
     writingLoopThread = new WritingLoopThread();
     writingLoopThread->setParent(this);
+
+    setDuration(0);
 }
 
 double AnimationManagementWidget::getCurrentX()
