@@ -90,6 +90,18 @@ LookupTableSelectionWidget::LookupTableSelectionWidget(QWidget *parent) :
     resetRangeToDefaultButton = new QPushButton(tr("Reset range"));
     mainLayout->addWidget(resetRangeToDefaultButton);
 
+    numberOfLabelsSpinBox = new QSpinBox();
+    numberOfLabelsSpinBox->setRange(2, 10);
+    numberOfLabelsSpinBox->setValue(settings.value("numberOfLabels", 2).toInt());
+
+    QLabel *numberOfLabelsLabel = new QLabel(tr("Number of labels"));
+
+    QHBoxLayout * numberOfLabelsLayout = new QHBoxLayout();
+    numberOfLabelsLayout->addWidget(numberOfLabelsLabel);
+    numberOfLabelsLayout->addWidget(numberOfLabelsSpinBox);
+
+    mainLayout->addLayout(numberOfLabelsLayout);
+
     textPropertyEditor = new TextPropertyEditor(QString("legend"));
 
     mainLayout->addWidget(textPropertyEditor);
@@ -122,6 +134,8 @@ LookupTableSelectionWidget::LookupTableSelectionWidget(QWidget *parent) :
             this, SLOT(saveCurrentLookupTableAsDefaultClicked()));
     connect(textPropertyEditor, SIGNAL(textPropertyChanged(vtkSmartPointer<vtkTextProperty>)),
             this, SIGNAL(currentLabelTextPropertyChanged(vtkSmartPointer<vtkTextProperty>)));
+    connect(numberOfLabelsSpinBox, SIGNAL(valueChanged(int)),
+            this, SIGNAL(numberOfLabelsChanged(int)));
 
     defaultMaxValue = 1.0;
     defaultMinValue = 0.0;

@@ -42,6 +42,7 @@ signals:
     void hideLegend();
     void scalarRangeChanged(double min, double max);
     void currentLabelTextPropertyChanged(vtkSmartPointer<vtkTextProperty>);
+    void numberOfLabelsChanged(int numberOfLabels);
 
 public slots:
 
@@ -105,6 +106,8 @@ private:
 
     QDoubleSpinBox *minValue;
     QDoubleSpinBox *maxValue;
+
+    QSpinBox *numberOfLabelsSpinBox;
 
     QCheckBox *showLegendCheckbox;
 

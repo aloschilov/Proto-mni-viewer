@@ -111,6 +111,7 @@ private slots:
     void hideLegend();
 
     void processScalarRangeChanged(double min, double max);
+    void processNumberOfLabelsChanged(int numberOfLabels);
 
     void processTransformationResetion();
 
@@ -198,6 +199,8 @@ private:
     vtkSmartPointer<vtkActor> markedAreaPinActor;
 
     QMap<vtkIdType, vtkSmartPointer<vtkActor> > placedPoints;
+
+    QSettings settings;
 };
 
 #endif // MAINWINDOW_H

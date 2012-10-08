@@ -133,6 +133,8 @@ MainWindow::MainWindow(QWidget *parent)
             this, SLOT(showLegend()));
     connect(lookupTableSelectionWidget, SIGNAL(hideLegend()),
             this, SLOT(hideLegend()));
+    connect(lookupTableSelectionWidget, SIGNAL(numberOfLabelsChanged(int)),
+            this, SLOT(processNumberOfLabelsChanged(int)));
 
     connect(shadingModelSelectionWidget, SIGNAL(shadingModelChangedToFlat()),
             this, SLOT(setFlatShadingModel()));
@@ -216,6 +218,7 @@ void MainWindow::initializeVtk()
 
     scalar_bar = vtkSmartPointer<vtkScalarBarActor >::New();
     scalar_bar->SetLookupTable(lookupTableSelectionWidget->getCurrentLookupTable());
+    scalar_bar->SetNumberOfLabels(settings.value("numberOfLabels", 2).toInt());
 
     ren = vtkSmartPointer<vtkRenderer>::New();
 
@@ -1466,6 +1469,13 @@ void MainWindow::processScalarRangeChanged(double min, double max)
     this->min = min;
     this->max = max;
     mapper->SetScalarRange(min, max);
+    qvtkWidget->GetRenderWindow()->Render();
+}
+
+void MainWindow::processNumberOfLabelsChanged(int numberOfLabels)
+{
+    scalar_bar->SetNumberOfLabels(numberOfLabels);
+    settings.setValue("numberOfLabels", numberOfLabels);
     qvtkWidget->GetRenderWindow()->Render();
 }
 
