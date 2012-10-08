@@ -56,6 +56,8 @@ private slots:
     void savePerPointRgbFile();
 
     void saveCurrentTransformation();
+    void openTransformation();
+    void openTransformationByName(QString fileName);
 
     void updateLookupTable(vtkSmartPointer<vtkLookupTable> lookupTable);
     void updateDirectRgbColors(vtkSmartPointer<vtkUnsignedCharArray> colors);
@@ -183,6 +185,7 @@ private:
     QState paintModeState;
 
     QAction *saveTransformationAction;
+    QAction *loadTransformationAction;
     QAction *activateCameraModeAction;
     QAction *activateObjectAnimationModeAction;
     QAction *activatePaintModeAction;

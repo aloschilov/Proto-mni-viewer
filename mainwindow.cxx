@@ -521,7 +521,31 @@ void MainWindow::showEvent ( QShowEvent * event )
         }
     }
 
+    // Parse --transformation option
 
+    for ( int i = 0; i < num; i++ )
+    {
+        QString s = qApp->argv()[i];
+
+        if ( s.startsWith( "--transformation" ) )
+        {
+            if(num - (i+1) >= 1)
+            {
+                ++i;
+                QString fileName = qApp->argv()[i];
+                if(QFile::exists(fileName))
+                {
+                    openTransformationByName(fileName);
+                    qDebug() << "parsed --tranformation" << fileName;
+                    break;
+                }
+                else
+                {
+                    qDebug() << "Wrong file specified";
+                }
+            }
+        }
+    }
 
     // Parse --object-to-load option
 
@@ -754,18 +778,50 @@ void MainWindow::saveCurrentTransformation()
         return;
     }
 
-    double pos[3];
-    double o[3];
-    double scale[3];
-
-    mniObjectTransfrom->GetPosition(pos);
-    mniObjectTransfrom->GetOrientation(o);
-    mniObjectTransfrom->GetScale(scale);
+    double elements[16];
+    vtkMatrix4x4::DeepCopy(elements, mniObjectTransfrom->GetMatrix());
 
     ofstream transformationFile;
     transformationFile.open(fileName.toStdString().c_str());
-    transformationFile << pos[0] << " " << pos[1] << " " << pos[2] << " " << o[0] << " " << o[1] << " " << o[2];
+
+    for(int i=0; i<16; ++i)
+    {
+        transformationFile << elements[i] << " ";
+    }
+
     transformationFile.close();
+}
+
+void MainWindow::openTransformation()
+{
+    QString fileName = QFileDialog::getOpenFileName(this,
+                                                    tr("Open transformation"),
+                                                    "",
+                                                    tr("Transformation (*.transformation)"));
+    if(fileName.isEmpty())
+    {
+        return;
+    }
+
+    openTransformationByName(fileName);
+
+    qvtkWidget->GetRenderWindow()->Render();
+}
+
+void MainWindow::openTransformationByName(QString fileName)
+{
+    ifstream in(fileName.toStdString().c_str(), ios::in);
+
+    double elements[16];
+
+    for(int i=0; i<16; ++i)
+    {
+        in >> elements[i];
+    }
+
+    mniObjectTransfrom->GetMatrix()->DeepCopy(elements);
+
+    in.close();
 }
 
 void MainWindow::updateLookupTable(vtkSmartPointer<vtkLookupTable> lookupTable)
@@ -816,6 +872,11 @@ void MainWindow::createActions()
     openPerPointScalarsFileAction = new QAction(tr("Open &scalars file"), this);
     connect(openPerPointScalarsFileAction, SIGNAL(triggered()), this, SLOT(openPerPointScalarsFile()));
 
+    // Open transformation
+
+    loadTransformationAction = new QAction(tr("Load transformation"), this);
+    connect(loadTransformationAction, SIGNAL(triggered()), this, SLOT(openTransformation()));
+
     // Camera mode
     activateCameraModeAction = new QAction(tr("Camera mode"), this);
     activateCameraModeAction->setIcon(QIcon(":/images/eye_point.svg"));
@@ -859,6 +920,7 @@ void MainWindow::createMenu()
     file->addAction(openMeshFileAction);
     file->addAction(openPerPointScalarsFileAction);
     file->addAction(saveTransformationAction);
+    file->addAction(loadTransformationAction);
 
     QMenu *view = menubar->addMenu("&View");
     lookupTableSelectionDockWidget->setVisible(false);
