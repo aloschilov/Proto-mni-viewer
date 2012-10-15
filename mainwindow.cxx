@@ -723,56 +723,6 @@ void MainWindow::openPerPointScalarsByFilename(QString fileName)
     lookupTableSelectionWidget->setDefaultRangeValues(min, max);
 }
 
-void MainWindow::openPerPointRgbFile()
-{
-    //    mapper->SetLookupTable(0);
-    //    mapper->SetColorModeToDefault();
-    //    reader->GetOutput()->GetPointData()->SetScalars(colors);
-
-}
-
-void MainWindow::savePerPointRgbFile()
-{
-    QString fileName = QFileDialog::getSaveFileName(this,
-                                                    tr("Save colormap as per vertex RGB"),
-                                                    "",
-                                                    tr("RGB file(*.rgb)"));
-
-    if(fileName.isEmpty())
-    {
-        return;
-    }
-
-
-    vtkDataArray* dataArray;
-    dataArray = reader->GetOutput()->GetPointData()->GetScalars();
-
-    if(dataArray != 0)
-    {
-        ofstream rgbOutFile;
-        rgbOutFile.open (fileName.toStdString().c_str());
-
-        dataArray->Print(cout);
-        int size = dataArray->GetSize();
-
-        for(int i=0; i<size; ++i)
-        {
-            unsigned char *value;
-
-            value = lookupTableSelectionWidget->getCurrentLookupTable()->MapValue(dataArray->GetTuple1(i));
-
-            rgbOutFile << int(value[0]) << " " << int(value[1]) << " " << int(value[2]) << endl;
-        }
-
-        rgbOutFile.close();
-    }
-    else
-    {
-        //dataArray = reader->GetOutput()->GetPointData()->GetScalars("Colors");
-        //dataArray->Print(cout);
-    }
-}
-
 void MainWindow::saveCurrentTransformation()
 {
     QString fileName = QFileDialog::getSaveFileName(this,
@@ -1216,40 +1166,49 @@ void MainWindow::openSelection()
 
     ifstream in(fileName.toStdString().c_str(), ios::in);
 
+    vtkIdType pointId;
+    pointId = 0;
+
     while(!in.eof()) {
-        vtkIdType pointId;
         double r;
         double g;
         double b;
-        in >> pointId;
+        double a;
+
         in >> r;
         in >> g;
         in >> b;
+        in >> a;
 
-        double v[3];
-        reader->GetOutput()->GetPoints()->GetPoint(pointId, v);
-
-        vtkSmartPointer<vtkSphereSource> markedAreaPin =
-                vtkSmartPointer<vtkSphereSource>::New();
-        markedAreaPin->Update();
-
-        vtkSmartPointer<vtkPolyDataMapper> markedAreaPinMapper =
-                vtkSmartPointer<vtkPolyDataMapper>::New();
-        markedAreaPinMapper->SetInputConnection(markedAreaPin->GetOutputPort());
-
-        vtkSmartPointer<vtkActor> pointToPlaceActor =
-                vtkSmartPointer<vtkActor>::New();
-        pointToPlaceActor->SetMapper(markedAreaPinMapper);
-        pointToPlaceActor->SetUserTransform(markedAreaTransfrom);
-        pointToPlaceActor->GetProperty()->SetColor(r, g, b);
-        pointToPlaceActor->SetPosition(v);
-        pointToPlaceActor->SetPickable(false);
-
-        if(!placedPoints.keys().contains(pointId))
+        if(r != 1 && g != -1 && b != -1 && a != -1 )
         {
-            placedPoints[pointId] = pointToPlaceActor;
-            ren->AddActor(pointToPlaceActor);
+            double v[3];
+            reader->GetOutput()->GetPoints()->GetPoint(pointId, v);
+
+            vtkSmartPointer<vtkSphereSource> markedAreaPin =
+                    vtkSmartPointer<vtkSphereSource>::New();
+            markedAreaPin->Update();
+
+            vtkSmartPointer<vtkPolyDataMapper> markedAreaPinMapper =
+                    vtkSmartPointer<vtkPolyDataMapper>::New();
+            markedAreaPinMapper->SetInputConnection(markedAreaPin->GetOutputPort());
+
+            vtkSmartPointer<vtkActor> pointToPlaceActor =
+                    vtkSmartPointer<vtkActor>::New();
+            pointToPlaceActor->SetMapper(markedAreaPinMapper);
+            pointToPlaceActor->SetUserTransform(markedAreaTransfrom);
+            pointToPlaceActor->GetProperty()->SetColor(r, g, b);
+            pointToPlaceActor->SetPosition(v);
+            pointToPlaceActor->SetPickable(false);
+
+            if(!placedPoints.keys().contains(pointId))
+            {
+                placedPoints[pointId] = pointToPlaceActor;
+                ren->AddActor(pointToPlaceActor);
+            }
         }
+
+        pointId++;
     }
 
     qvtkWidget->GetRenderWindow()->Render();
@@ -1270,12 +1229,20 @@ void MainWindow::saveSelection()
     ofstream outfile;
     outfile.open (fileName.toStdString().c_str());
 
-    QMapIterator<vtkIdType, vtkSmartPointer<vtkActor> > i(placedPoints);
-    while (i.hasNext()) {
-        i.next();
-        double rgb[3];
-        i.value()->GetProperty()->GetColor(rgb);
-        outfile << i.key() << " " << rgb[0] << " " << rgb[1] << " " << rgb[2] << endl;
+    int size = reader->GetOutput()->GetNumberOfPoints();
+
+    for(int i=0; i<size; ++i)
+    {
+        if(placedPoints.contains(i))
+        {
+            double rgb[3];
+            placedPoints[i]->GetProperty()->GetColor(rgb);
+            outfile << rgb[0] << " " << rgb[1] << " " << rgb[2] << " " << 1.0 << " " << endl;
+        }
+        else
+        {
+            outfile << -1.0 << " " << -1.0 << " " << -1.0 << " " << 1.0 << " " << endl;
+        }
     }
 
     outfile.close();

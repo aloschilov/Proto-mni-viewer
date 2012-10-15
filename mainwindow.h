@@ -52,9 +52,6 @@ private slots:
     void openPerPointScalarsFile();
     void openPerPointScalarsByFilename(QString fileName);
 
-    void openPerPointRgbFile();
-    void savePerPointRgbFile();
-
     void saveCurrentTransformation();
     void openTransformation();
     void openTransformationByName(QString fileName);
