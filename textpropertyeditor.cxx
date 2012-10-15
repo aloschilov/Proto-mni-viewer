@@ -127,8 +127,8 @@ QGroupBox *TextPropertyEditor::createTypefaceGroupBox()
     QVBoxLayout *groupBoxLayout = new QVBoxLayout();
     groupBox->setLayout(groupBoxLayout);
 
-    italicCheckBox = new QCheckBox("Bold");
-    boldCheckBox = new QCheckBox("Italic");
+    italicCheckBox = new QCheckBox("Italic");
+    boldCheckBox = new QCheckBox("Bold");
     shadowCheckBox = new QCheckBox("Text shadow");
     shadowCheckBox->setVisible(false);
 
