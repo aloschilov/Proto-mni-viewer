@@ -61,6 +61,44 @@ double string_to_double( const std::string& s ) {
     return x;
 }
 
+/**
+ * Setup the rendering environment for depth peeling (general depth peeling
+ * support is requested).
+ * @see IsDepthPeelingSupported()
+ * @param renderWindow a valid openGL-supporting render window
+ * @param renderer a valid renderer instance
+ * @param maxNoOfPeels maximum number of depth peels (multi-pass rendering)
+ * @param occulusionRation the occlusion ration (0.0 means a perfect image,
+ * >0.0 means a non-perfect image which in general results in faster rendering)
+ * @return TRUE if depth peeling could be set up
+ */
+bool SetupEnvironmentForDepthPeeling(
+  vtkSmartPointer<vtkRenderWindow> renderWindow,
+  vtkSmartPointer<vtkRenderer> renderer, int maxNoOfPeels,
+  double occlusionRatio)
+{
+  if (!renderWindow || !renderer)
+    return false;
+
+  // 1. Use a render window with alpha bits (as initial value is 0 (false)):
+  renderWindow->SetAlphaBitPlanes(true);
+
+  // 2. Force to not pick a framebuffer with a multisample buffer
+  // (as initial value is 8):
+  renderWindow->SetMultiSamples(0);
+
+  // 3. Choose to use depth peeling (if supported) (initial value is 0 (false)):
+  renderer->SetUseDepthPeeling(true);
+
+  // 4. Set depth peeling parameters
+  // - Set the maximum number of rendering passes (initial value is 4):
+  renderer->SetMaximumNumberOfPeels(maxNoOfPeels);
+  // - Set the occlusion ratio (initial value is 0.0, exact image):
+  renderer->SetOcclusionRatio(occlusionRatio);
+
+  return true;
+}
+
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
 {
@@ -227,6 +265,7 @@ void MainWindow::initializeVtk()
 
     qvtkWidget->GetRenderWindow()->AddRenderer(ren);
     qvtkWidget->GetInteractor()->LightFollowCameraOff();
+    SetupEnvironmentForDepthPeeling(qvtkWidget->GetRenderWindow(), ren, 100, 0.1);
 
     sphereWidget = vtkSphereWidget::New();
     sphereWidget->SetInteractor(qvtkWidget->GetInteractor());
