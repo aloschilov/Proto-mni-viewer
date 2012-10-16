@@ -38,7 +38,12 @@ int main(int argc, char** argv)
     QCoreApplication::setOrganizationName("G");
     QCoreApplication::setApplicationName("MNI objects viewer");
 
+    QSettings settings;
+    int width = settings.value("width", 100).toInt();
+    int height = settings.value("height", 100).toInt();
+
     MainWindow w;
+    w.resize(width, height);
     w.show();
 
     return app.exec();

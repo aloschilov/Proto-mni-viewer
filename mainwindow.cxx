@@ -683,6 +683,13 @@ void MainWindow::showEvent ( QShowEvent * event )
     }
 }
 
+void MainWindow::resizeEvent ( QResizeEvent * event )
+{
+    settings.setValue("width", event->size().width());
+    settings.setValue("height", event->size().height());
+    QMainWindow::resizeEvent(event);
+}
+
 void MainWindow::openMeshFile()
 {
     QString fileName = QFileDialog::getOpenFileName(this,

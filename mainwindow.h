@@ -45,6 +45,7 @@ public:
 protected:
 
     void showEvent ( QShowEvent * event );
+    void resizeEvent ( QResizeEvent * event );
 
 private slots:
 
