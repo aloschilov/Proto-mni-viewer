@@ -229,6 +229,9 @@ MainWindow::MainWindow(QWidget *parent)
             this, SLOT(updateScalarBarActorLabelTextProperty(vtkSmartPointer<vtkTextProperty>)));
 
     updateScalarBarActorLabelTextProperty(lookupTableSelectionWidget->getCurrentLabelTextProperty());
+
+    QColor backroundColor = settings.value("backgroundColor", QColor(Qt::black) ).value<QColor>();
+    ren->SetBackground(backroundColor.redF(), backroundColor.greenF(), backroundColor.blueF());
 }
 
 void MainWindow::initializeVtk()
@@ -1524,11 +1527,13 @@ void MainWindow::processSelectColorForPencil()
 void MainWindow::processSelectBackgroundColor()
 {
     QColor color;
-    color = QColorDialog::getColor(Qt::black, this);
+    color = QColorDialog::getColor(settings.value("backgroundColor", QColor(Qt::black) ).value<QColor>(), this);
 
     if(color.isValid())
     {
+        settings.setValue("backgroundColor", color);
         ren->SetBackground(color.redF(), color.greenF(), color.blueF());
+        qvtkWidget->GetRenderWindow()->Render();
     }
 }
 
