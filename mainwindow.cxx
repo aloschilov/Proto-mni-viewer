@@ -30,6 +30,20 @@
 #include <vtkPolyDataWriter.h>
 #include <vtkPNGWriter.h>
 
+#include <vtkSphereSource.h>
+#include <vtkSmartPointer.h>
+#include <vtkAppendPolyData.h>
+#include <vtkCamera.h>
+#include <vtkPolyDataMapper.h>
+#include <vtkActor.h>
+#include <vtkRenderer.h>
+#include <vtkRenderWindow.h>
+#include <vtkProperty.h>
+#include <vtkRenderWindowInteractor.h>
+#include <vtkTimerLog.h>
+#include <vtkTransform.h>
+#include <vtkDepthSortPolyData.h>
+
 // vtkWidgets
 
 #include <iostream>
@@ -59,6 +73,49 @@ double string_to_double( const std::string& s ) {
         return 0;
 
     return x;
+}
+
+/**
+ * Generate a bunch of overlapping spheres within one poly data set:
+ * one big sphere evenly surrounded by four small spheres that intersect the
+ * centered sphere.
+ * @param theta sphere sampling resolution (THETA)
+ * @param phi sphere sampling resolution (PHI)
+ * @return the set of spheres within one logical poly data set
+ **/
+vtkSmartPointer<vtkAppendPolyData> GenerateOverlappingBunchOfSpheres(int theta,
+                                                                     int phi)
+{
+    vtkSmartPointer<vtkAppendPolyData> appendData =
+            vtkSmartPointer<vtkAppendPolyData>::New();
+
+    for (int i = 0; i < 5; i++)
+    {
+        vtkSmartPointer<vtkSphereSource> sphereSource =
+                vtkSmartPointer<vtkSphereSource>::New();
+        sphereSource->SetThetaResolution(theta);
+        sphereSource->SetPhiResolution(phi);
+        sphereSource->SetRadius(0.5); // all spheres except the center
+        // one should have radius = 0.5
+        switch (i)
+        {
+        case 0:
+            sphereSource->SetRadius(1);
+            sphereSource->SetCenter(0, 0, 0); break;
+        case 1:
+            sphereSource->SetCenter(1, 0, 0); break;
+        case 2:
+            sphereSource->SetCenter(-1, 0, 0); break;
+        case 3:
+            sphereSource->SetCenter(0, 1, 0); break;
+        case 4:
+            sphereSource->SetCenter(0, -1, 0); break;
+        }
+        sphereSource->Update();
+        appendData->AddInputConnection(sphereSource->GetOutputPort());
+    }
+
+    return appendData;
 }
 
 /**
@@ -98,6 +155,108 @@ bool SetupEnvironmentForDepthPeeling(
 
   return true;
 }
+
+/**
+ * Find out whether this box supports depth peeling. Depth peeling requires
+ * a variety of openGL extensions and appropriate drivers.
+ * @param renderWindow a valid openGL-supporting render window
+ * @param renderer a valid renderer instance
+ * @param doItOffscreen do the test off screen which means that nothing is
+ * rendered to screen (this requires the box to support off screen rendering)
+ * @return TRUE if depth peeling is supported, FALSE otherwise (which means
+ * that another strategy must be used for correct rendering of translucent * geometry, e.g. CPU-based depth sorting)
+ */
+bool IsDepthPeelingSupported(vtkSmartPointer<vtkRenderWindow> renderWindow,
+                             vtkSmartPointer<vtkRenderer> renderer,
+                             bool doItOffScreen)
+{
+  if (!renderWindow || !renderer)
+    {
+    return false;
+    }
+
+  bool success = true;
+
+  // Save original renderer / render window state
+  bool origOffScreenRendering = renderWindow->GetOffScreenRendering() == 1;
+  bool origAlphaBitPlanes = renderWindow->GetAlphaBitPlanes() == 1;
+  int origMultiSamples = renderWindow->GetMultiSamples();
+  bool origUseDepthPeeling = renderer->GetUseDepthPeeling() == 1;
+  int origMaxPeels = renderer->GetMaximumNumberOfPeels();
+  double origOcclusionRatio = renderer->GetOcclusionRatio();
+
+  // Activate off screen rendering on demand
+  renderWindow->SetOffScreenRendering(doItOffScreen);
+
+  // Setup environment for depth peeling (with some default parametrization)
+  success = success && SetupEnvironmentForDepthPeeling(renderWindow, renderer,
+                                                       100, 0.1);
+
+  // Do a test render
+  renderWindow->Render();
+
+  // Check whether depth peeling was used
+  success = success && renderer->GetLastRenderingUsedDepthPeeling();
+
+  // recover original state
+  renderWindow->SetOffScreenRendering(origOffScreenRendering);
+  renderWindow->SetAlphaBitPlanes(origAlphaBitPlanes);
+  renderWindow->SetMultiSamples(origMultiSamples);
+  renderer->SetUseDepthPeeling(origUseDepthPeeling);
+  renderer->SetMaximumNumberOfPeels(origMaxPeels);
+  renderer->SetOcclusionRatio(origOcclusionRatio);
+
+  return success;
+}
+
+bool getDepthPeelingSupported ()
+{
+    int theta = 100;
+    int phi = 100;
+    int maxPeels = 50;
+    double occulusionRatio = 0.1;
+
+    // Generate a translucent sphere poly data set that partially overlaps:
+    vtkSmartPointer<vtkAppendPolyData> translucentGeometry =
+            GenerateOverlappingBunchOfSpheres(theta, phi);
+
+    // generate a basic Mapper and Actor
+    vtkSmartPointer<vtkPolyDataMapper> mapper =
+            vtkSmartPointer<vtkPolyDataMapper>::New();
+    mapper->SetInputConnection(translucentGeometry->GetOutputPort());
+
+    vtkSmartPointer<vtkActor> actor =
+            vtkSmartPointer<vtkActor>::New();
+    actor->SetMapper(mapper);
+    actor->GetProperty()->SetOpacity(0.5); // translucent !!!
+    actor->GetProperty()->SetColor(1, 0, 0);
+    actor->RotateX(-72); // put the objects in a position where it is easy to see
+    // different overlapping regions
+
+    // Create the RenderWindow, Renderer and RenderWindowInteractor
+    vtkSmartPointer<vtkRenderer> renderer =
+            vtkSmartPointer<vtkRenderer>::New();
+    vtkSmartPointer<vtkRenderWindow> renderWindow =
+            vtkSmartPointer<vtkRenderWindow>::New();
+    renderWindow->AddRenderer(renderer);
+    vtkSmartPointer<vtkRenderWindowInteractor> renderWindowInteractor =
+            vtkSmartPointer<vtkRenderWindowInteractor>::New();
+    renderWindowInteractor->SetRenderWindow(renderWindow);
+
+    // Add the actors to the renderer, set the background and size
+    renderer->AddActor(actor);
+    renderer->SetBackground(1, 1, 1);
+    renderWindow->SetSize(600, 400);
+
+    // Setup view geometry
+    renderer->ResetCamera();
+    renderer->GetActiveCamera()->Zoom(2.2); // so the object is larger
+
+    // Answer the key question: Does this box support GPU Depth Peeling?
+    bool useDepthPeeling = IsDepthPeelingSupported(renderWindow, renderer, true);
+    return useDepthPeeling;
+}
+
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
@@ -263,12 +422,19 @@ void MainWindow::initializeVtk()
 
     ren = vtkSmartPointer<vtkRenderer>::New();
 
+    // Does this box support GPU Depth Peeling?
+    isDepthPeelingSupported = getDepthPeelingSupported();
+    qDebug() << "DEPTH PEELING SUPPORT: " << (isDepthPeelingSupported ? "YES" : "NO");
+
+    if(isDepthPeelingSupported)
+        SetupEnvironmentForDepthPeeling(qvtkWidget->GetRenderWindow(), ren, 100, 0.1);
+
+
     ren->AddActor(actor);
     ren->AddActor(scalar_bar);
 
     qvtkWidget->GetRenderWindow()->AddRenderer(ren);
     qvtkWidget->GetInteractor()->LightFollowCameraOff();
-    SetupEnvironmentForDepthPeeling(qvtkWidget->GetRenderWindow(), ren, 100, 0.1);
 
     sphereWidget = vtkSphereWidget::New();
     sphereWidget->SetInteractor(qvtkWidget->GetInteractor());
@@ -358,6 +524,11 @@ void MainWindow::initializeVtk()
     lightingPropertiesWidget->diffuseDoubleSpinBox->setValue(actor->GetProperty()->GetDiffuse());
     lightingPropertiesWidget->specularDoubleSpinBox->setValue(actor->GetProperty()->GetSpecular());
     lightingPropertiesWidget->opacityDoubleSpinBox->setValue(actor->GetProperty()->GetOpacity());
+
+
+
+
+
 }
 
 void MainWindow::initializeStateMachine()
@@ -713,7 +884,25 @@ void MainWindow::openMeshFileByName(const QString &fileName)
     {
         reader->SetFileName(fileName.toStdString().c_str());
         reader->Update();
-        mapper->SetInputConnection(reader->GetOutputPort());
+        if(isDepthPeelingSupported)
+        {
+            mapper->SetInputConnection(reader->GetOutputPort());
+        }
+        else
+        {
+            std::cout << "*** DEPTH SORTING ***" << std::endl;
+            // Setup CPU depth sorting filter
+            vtkSmartPointer<vtkDepthSortPolyData> depthSort =
+                    vtkSmartPointer<vtkDepthSortPolyData>::New();
+            depthSort->SetInputConnection(reader->GetOutputPort());
+            depthSort->SetDirectionToBackToFront();
+            depthSort->SetVector(1, 1, 1);
+            depthSort->SetCamera(ren->GetActiveCamera());
+            //depthSort->SortScalarsOff(); // do not really need this here
+            // Bring it to the mapper's input
+            mapper->SetInputConnection(depthSort->GetOutputPort());
+            depthSort->Update();
+        }
         setWindowTitle(tr("MNI object viewer - %1").arg(fileName));
         statusBar()->showMessage(tr("MNI object file was successfully opened."));
         ren->ResetCamera();

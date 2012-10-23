@@ -161,6 +161,7 @@ private:
     vtkFloatArray *scalars;
     float min;
     float max;
+    bool isDepthPeelingSupported;
 
     // Vtk objects related to marking surface
 
