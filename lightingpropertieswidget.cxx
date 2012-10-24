@@ -33,7 +33,6 @@ LightingPropertiesWidget::LightingPropertiesWidget(QWidget *parent) :
     lightingWidgetVisibilityCheckbox = new QCheckBox(tr("Show lighing &position widget"));
 
     enableDepthSortingCheckbox = new QCheckBox(tr("Enable &depth sorting"));
-    enableDepthSortingCheckbox->setChecked(true);
 
     QVBoxLayout *mainLayout = new QVBoxLayout();
 

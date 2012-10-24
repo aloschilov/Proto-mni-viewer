@@ -6,7 +6,6 @@
 
 #include <vtkDataObjectToTable.h>
 #include <vtkElevationFilter.h>
-#include <vtkQtTableView.h>
 #include <vtkRenderer.h>
 #include <vtkRenderWindow.h>
 #include <vtkVectorText.h>
@@ -455,10 +454,6 @@ void MainWindow::initializeVtk()
     // Does this box support GPU Depth Peeling?
     isDepthPeelingSupported = getDepthPeelingSupported();
     qDebug() << "DEPTH PEELING SUPPORT: " << (isDepthPeelingSupported ? "YES" : "NO");
-
-    if(isDepthPeelingSupported)
-        SetupEnvironmentForDepthPeeling(qvtkWidget->GetRenderWindow(), ren, 100, 0.1);
-
 
     ren->AddActor(actor);
     ren->AddActor(scalar_bar);
@@ -914,25 +909,8 @@ void MainWindow::openMeshFileByName(const QString &fileName)
     {
         reader->SetFileName(fileName.toStdString().c_str());
         reader->Update();
-        if(isDepthPeelingSupported)
-        {
-            mapper->SetInputConnection(reader->GetOutputPort());
-        }
-        else
-        {
-            std::cout << "*** DEPTH SORTING ***" << std::endl;
-            // Setup CPU depth sorting filter
-            vtkSmartPointer<vtkDepthSortPolyData> depthSort =
-                    vtkSmartPointer<vtkDepthSortPolyData>::New();
-            depthSort->SetInputConnection(reader->GetOutputPort());
-            depthSort->SetDirectionToBackToFront();
-            depthSort->SetVector(1, 1, 1);
-            depthSort->SetCamera(ren->GetActiveCamera());
-            //depthSort->SortScalarsOff(); // do not really need this here
-            // Bring it to the mapper's input
-            mapper->SetInputConnection(depthSort->GetOutputPort());
-            depthSort->Update();
-        }
+        mapper->SetInputConnection(reader->GetOutputPort());
+
         setWindowTitle(tr("MNI object viewer - %1").arg(fileName));
         statusBar()->showMessage(tr("MNI object file was successfully opened."));
         ren->ResetCamera();
