@@ -156,6 +156,34 @@ bool SetupEnvironmentForDepthPeeling(
   return true;
 }
 
+
+/**
+ * Unsetup the rendering environment for depth peeling (general depth peeling
+ * support is requested).
+ * @see IsDepthPeelingSupported()
+ * @param renderWindow a valid openGL-supporting render window
+ * @param renderer a valid renderer instance
+ * @param maxNoOfPeels maximum number of depth peels (multi-pass rendering)
+ * @param occulusionRation the occlusion ration (0.0 means a perfect image,
+ * >0.0 means a non-perfect image which in general results in faster rendering)
+ * @return TRUE if depth peeling could be set up
+ */
+bool UnsetupEnvironmentForDepthPeeling(
+  vtkSmartPointer<vtkRenderWindow> renderWindow,
+  vtkSmartPointer<vtkRenderer> renderer)
+{
+  if (!renderWindow || !renderer)
+    return false;
+
+  renderWindow->SetAlphaBitPlanes(false);
+  renderWindow->SetMultiSamples(8);
+  renderer->SetUseDepthPeeling(false);
+  renderer->SetMaximumNumberOfPeels(4);
+  renderer->SetOcclusionRatio(0.0);
+
+  return true;
+}
+
 /**
  * Find out whether this box supports depth peeling. Depth peeling requires
  * a variety of openGL extensions and appropriate drivers.
@@ -349,6 +377,8 @@ MainWindow::MainWindow(QWidget *parent)
             this, SLOT(processOpacityChanged(double)));
     connect(lightingPropertiesWidget->lightingWidgetVisibilityCheckbox, SIGNAL(stateChanged(int)),
             this, SLOT(processLightingWidgetStateChanged(int)));
+    connect(lightingPropertiesWidget->enableDepthSortingCheckbox, SIGNAL(stateChanged(int)),
+            this, SLOT(processDepthSortingCheckstateChanged(int)));
     //    connect(surfaceSelectionWidget->enableSurfaceSelectorCheckbox, SIGNAL(stateChanged(int)),
     //            this, SLOT(processSurfaceSelectorStateChanged(int)));
     connect(surfaceSelectionWidget->openSelectedPoints, SIGNAL(clicked()),
@@ -1760,3 +1790,51 @@ void MainWindow::processTransformationResetion()
     qvtkWidget->GetRenderWindow()->Render();
 }
 
+void MainWindow::processDepthSortingCheckstateChanged(int state)
+{
+    if(state == Qt::Checked)
+    {
+        if(isDepthPeelingSupported)
+        {
+            enableDepthPeeling();
+        }
+        else
+        {
+            enableCpuDepthSortingPipeline();
+        }
+
+    } else if (state == Qt::Unchecked)
+    {
+        disableCpuDepthSortingPipeline();
+        disableDepthPeeling();
+    }
+}
+
+void MainWindow::enableCpuDepthSortingPipeline()
+{
+    vtkSmartPointer<vtkDepthSortPolyData> depthSort =
+            vtkSmartPointer<vtkDepthSortPolyData>::New();
+    depthSort->SetInputConnection(reader->GetOutputPort());
+    depthSort->SetDirectionToBackToFront();
+    depthSort->SetVector(1, 1, 1);
+    depthSort->SetCamera(ren->GetActiveCamera());
+    mapper->SetInputConnection(depthSort->GetOutputPort());
+    depthSort->Update();
+    qvtkWidget->GetRenderWindow()->Render();
+}
+
+void MainWindow::disableCpuDepthSortingPipeline()
+{
+    mapper->SetInputConnection(reader->GetOutputPort());
+    qvtkWidget->GetRenderWindow()->Render();
+}
+
+void MainWindow::enableDepthPeeling()
+{
+    SetupEnvironmentForDepthPeeling(qvtkWidget->GetRenderWindow(), ren, 100, 0.1);
+}
+
+void MainWindow::disableDepthPeeling()
+{
+    UnsetupEnvironmentForDepthPeeling(qvtkWidget->GetRenderWindow(), ren);
+}

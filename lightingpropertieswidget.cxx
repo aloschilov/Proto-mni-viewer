@@ -32,6 +32,9 @@ LightingPropertiesWidget::LightingPropertiesWidget(QWidget *parent) :
 
     lightingWidgetVisibilityCheckbox = new QCheckBox(tr("Show lighing &position widget"));
 
+    enableDepthSortingCheckbox = new QCheckBox(tr("Enable &depth sorting"));
+    enableDepthSortingCheckbox->setChecked(true);
+
     QVBoxLayout *mainLayout = new QVBoxLayout();
 
     QGridLayout *gridLayout = new QGridLayout();
@@ -49,6 +52,8 @@ LightingPropertiesWidget::LightingPropertiesWidget(QWidget *parent) :
 
     gridLayout->addWidget(enableLightingCheckbox, 4, 0, 1, 2);
     gridLayout->addWidget(lightingWidgetVisibilityCheckbox, 5, 0, 1, 2);
+
+    gridLayout->addWidget(enableDepthSortingCheckbox, 6, 0, 1, 2);
 
     mainLayout->addLayout(gridLayout);
     mainLayout->addStretch();

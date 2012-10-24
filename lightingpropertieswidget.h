@@ -19,6 +19,7 @@ public:
 
     QCheckBox *enableLightingCheckbox;
     QCheckBox *lightingWidgetVisibilityCheckbox;
+    QCheckBox *enableDepthSortingCheckbox;
 signals:
     
 public slots:

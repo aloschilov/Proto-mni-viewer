@@ -115,6 +115,14 @@ private slots:
 
     void processTransformationResetion();
 
+    void processDepthSortingCheckstateChanged(int state);
+
+    void enableCpuDepthSortingPipeline();
+    void disableCpuDepthSortingPipeline();
+
+    void enableDepthPeeling();
+    void disableDepthPeeling();
+
 private:
     void createActions();
     void createMenu();
