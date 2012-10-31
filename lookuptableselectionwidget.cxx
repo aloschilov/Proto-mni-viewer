@@ -316,7 +316,7 @@ void LookupTableSelectionWidget::saveCurrentLookupTableAsDefaultClicked()
 
         ostringstream out;
 
-        for(int i; i < numberOfTableValues; ++i)
+        for(int i=0; i < numberOfTableValues; ++i)
         {
             double r = lookupTables[lookupTablesButtonGroup->checkedId()]->GetTableValue(i)[0];
             double g = lookupTables[lookupTablesButtonGroup->checkedId()]->GetTableValue(i)[1];

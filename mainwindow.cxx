@@ -240,8 +240,6 @@ bool getDepthPeelingSupported ()
 {
     int theta = 100;
     int phi = 100;
-    int maxPeels = 50;
-    double occulusionRatio = 0.1;
 
     // Generate a translucent sphere poly data set that partially overlaps:
     vtkSmartPointer<vtkAppendPolyData> translucentGeometry =
@@ -1255,7 +1253,6 @@ void MainWindow::processLeftButtonPressEvent(vtkObject *caller, unsigned long, v
     iren->GetEventPosition(pos);
     volumePicker->Pick(pos[0], pos[1], 0, ren);
     double p[3];
-    double n[3];
     volumePicker->GetPickPosition(p);
 
     vtkIdType pointId = volumePicker->GetPointId();
