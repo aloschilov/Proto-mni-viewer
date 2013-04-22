@@ -13,9 +13,9 @@
         <file>colormaps/fire.bmp</file>
         <file>images/add.png</file>
         <file>images/del.png</file>
-        <file>images/camera.svg</file>
-        <file>images/eye_point.svg</file>
-        <file>images/pencil.svg</file>
-        <file>images/background_color.svg</file>
+        <file>images/camera.png</file>
+        <file>images/eye_point.png</file>
+        <file>images/pencil.png</file>
+        <file>images/background_color.png</file>
     </qresource>
 </RCC>

@@ -1079,17 +1079,17 @@ void MainWindow::createActions()
 
     // Camera mode
     activateCameraModeAction = new QAction(tr("Camera mode"), this);
-    activateCameraModeAction->setIcon(QIcon(":/images/eye_point.svg"));
+    activateCameraModeAction->setIcon(QIcon(":/images/eye_point.png"));
     activateCameraModeAction->setCheckable(true);
 
     // Animation mode
     activateObjectAnimationModeAction = new QAction(tr("Object animation mode"), this);
-    activateObjectAnimationModeAction->setIcon(QIcon(":/images/camera.svg"));
+    activateObjectAnimationModeAction->setIcon(QIcon(":/images/camera.png"));
     activateObjectAnimationModeAction->setCheckable(true);
 
     // Paint mode
     activatePaintModeAction = new QAction(tr("Paint mode"), this);
-    activatePaintModeAction->setIcon(QIcon(":/images/pencil.svg"));
+    activatePaintModeAction->setIcon(QIcon(":/images/pencil.png"));
     activatePaintModeAction->setCheckable(true);
 
     // Create color selection button
@@ -1099,7 +1099,7 @@ void MainWindow::createActions()
     // Create background color selection button
 
     selectBackgroundColorToolButton = new QToolButton(this);
-    selectBackgroundColorToolButton->setIcon(QIcon(":/images/background_color.svg"));
+    selectBackgroundColorToolButton->setIcon(QIcon(":/images/background_color.png"));
 
     // Create save transformation action
 
